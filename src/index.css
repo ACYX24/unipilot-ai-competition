@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  /* 品牌色板：奶油白 + 浅橙 */
+  --color-cream-50: #fffdf8;
+  --color-cream-100: #fff8ec;
+  --color-cream-200: #ffefdb;
+  --color-cream-300: #ffe4c4;
+
+  --color-tang-50: #fff5ed;
+  --color-tang-100: #ffe8d6;
+  --color-tang-200: #ffd0ad;
+  --color-tang-300: #ffb178;
+  --color-tang-400: #ff9350;
+  --color-tang-500: #f97c33;
+  --color-tang-600: #ea6320;
+  --color-tang-700: #c24c18;
+
+  --color-cocoa-400: #a3897a;
+  --color-cocoa-500: #7c6355;
+  --color-cocoa-600: #5d4a3e;
+  --color-cocoa-700: #453630;
+  --color-cocoa-800: #33271f;
+
+  --color-matcha-300: #b7d9a0;
+  --color-matcha-500: #7fb069;
+
+  --color-blush-300: #ffc2c2;
+  --color-blush-500: #f98e8e;
+
+  /* 圆润可爱的阴影 */
+  --shadow-soft: 0 4px 20px -4px rgb(249 124 51 / 0.12);
+  --shadow-lift: 0 12px 32px -8px rgb(249 124 51 / 0.22);
+
+  /* 字体 */
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI",
+    "Microsoft YaHei", "Nunito", ui-rounded, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cream-100 text-cocoa-700 font-sans antialiased;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 10% 0%, rgb(255 208 173 / 0.35), transparent),
+    radial-gradient(ellipse 50% 35% at 95% 10%, rgb(255 228 196 / 0.5), transparent);
+  background-attachment: fixed;
+}
