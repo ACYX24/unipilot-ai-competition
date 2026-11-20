@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -13,19 +14,39 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { saveCredentials } from "@/lib/credentials-storage"
+import { joinRoom } from "@/lib/room-api"
 
 export function JoinRoomDialog() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [code, setCode] = useState("")
+  const [displayName, setDisplayName] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState("")
 
   const normalizedCode = code.trim().toUpperCase()
+  const canSubmit = normalizedCode && displayName.trim() && !submitting
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!normalizedCode) return
-    setOpen(false)
-    router.push(`/room/${normalizedCode}`)
+    if (!canSubmit) return
+
+    setSubmitting(true)
+    setError("")
+    try {
+      const result = await joinRoom({
+        inviteCode: normalizedCode,
+        displayName: displayName.trim(),
+      })
+      saveCredentials(result)
+      setOpen(false)
+      router.push(`/room/${result.roomId}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "加入失败，请稍后重试")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -45,7 +66,7 @@ export function JoinRoomDialog() {
         <DialogHeader>
           <DialogTitle>加入调解房间</DialogTitle>
           <DialogDescription>
-            输入对方分享给你的房间邀请码，即可进入同一间调解室。
+            输入对方分享给你的房间邀请码，你将成为用户 B。
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -55,22 +76,36 @@ export function JoinRoomDialog() {
               id="invite-code"
               value={code}
               onChange={(event) => setCode(event.target.value)}
-              placeholder="例如 CAT888"
+              placeholder="8 位字母与数字"
               autoComplete="off"
               maxLength={12}
               className="h-11 rounded-xl uppercase"
             />
-            <p className="text-xs text-muted-foreground">
-              演示阶段输入任意邀请码即可进入示例房间（如 CAT888）。
-            </p>
           </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="join-display-name">你的昵称</Label>
+            <Input
+              id="join-display-name"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              placeholder="例如：奶盖"
+              maxLength={30}
+              className="h-11 rounded-xl"
+            />
+          </div>
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
           <Button
             type="submit"
             size="lg"
-            disabled={!normalizedCode}
+            disabled={!canSubmit}
             className="h-11 rounded-full"
           >
-            进入房间
+            {submitting && <Loader2 className="animate-spin" />}
+            {submitting ? "加入中…" : "进入房间"}
           </Button>
         </form>
       </DialogContent>

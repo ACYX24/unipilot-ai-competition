@@ -1,6 +1,5 @@
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getMockRoom } from "@/lib/mock-data"
 import { RoomView } from "./room-view"
 
 export default function RoomPage({
@@ -31,5 +30,5 @@ async function RoomContent({
   params: Promise<{ roomId: string }>
 }) {
   const { roomId } = await params
-  return <RoomView room={getMockRoom(roomId)} />
+  return <RoomView roomId={roomId} />
 }

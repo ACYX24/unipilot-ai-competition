@@ -59,7 +59,7 @@ export default function Home() {
           </p>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <Link
-              href="/room/CAT888"
+              href="/create"
               className={cn(
                 buttonVariants({ size: "lg" }),
                 "h-12 rounded-full px-7 text-base",

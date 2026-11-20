@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { Check, CheckCircle2, Copy, Loader2, Scale } from "lucide-react"
 import { CatAvatar } from "@/components/cat-mascot"
@@ -13,16 +13,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
-import type { MockRoom, PartySide } from "@/lib/mock-data"
+import { loadCredentials } from "@/lib/credentials-storage"
+import { fetchRoomState, submitStatement } from "@/lib/room-api"
+import type {
+  ParticipantCredentials,
+  RoomStateResponse,
+  RoomStatus,
+  Side,
+} from "@/lib/room-types"
 import { cn } from "@/lib/utils"
 
-type StatementState = Record<PartySide, { text: string; submitted: boolean }>
+const POLL_INTERVAL = 3000
 
-const sideStyles: Record<
-  PartySide,
-  { card: string; badge: string; bubble: string }
-> = {
+const statusLabels: Record<RoomStatus, string> = {
+  waiting: "等待对方加入",
+  collecting: "观点收集中",
+  analyzing: "双方已提交",
+  completed: "调解已完成",
+}
+
+const sideStyles: Record<Side, { card: string; badge: string; bubble: string }> = {
   A: {
     card: "border-rose-100 bg-rose-50/50",
     badge: "bg-rose-100 text-rose-500",
@@ -35,57 +47,136 @@ const sideStyles: Record<
   },
 }
 
-export function RoomView({ room }: { room: MockRoom }) {
-  const [statements, setStatements] = useState<StatementState>({
-    A: { text: "", submitted: false },
-    B: { text: "", submitted: false },
-  })
+export function RoomView({ roomId }: { roomId: string }) {
+  const [credentials, setCredentials] =
+    useState<ParticipantCredentials | null>(null)
+  const [credentialChecked, setCredentialChecked] = useState(false)
+  const [state, setState] = useState<RoomStateResponse | null>(null)
+  const [error, setError] = useState("")
+  const [draft, setDraft] = useState("")
+  const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [analysisReady, setAnalysisReady] = useState(false)
-  const analysisTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const allSubmitted = statements.A.submitted && statements.B.submitted
-  const analyzing = allSubmitted && !analysisReady
+  useEffect(() => {
+    // localStorage 仅在浏览器可用，放到异步回调中读取以避免 SSR 不一致
+    const timer = setTimeout(() => {
+      setCredentials(loadCredentials(roomId))
+      setCredentialChecked(true)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [roomId])
 
-  useEffect(
-    () => () => {
-      if (analysisTimer.current) clearTimeout(analysisTimer.current)
-    },
-    [],
-  )
+  const refresh = useCallback(async () => {
+    if (!credentials) return
+    try {
+      const next = await fetchRoomState(roomId, credentials.accessToken)
+      setState(next)
+      setError("")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "加载失败")
+    }
+  }, [credentials, roomId])
 
-  function updateStatement(side: PartySide, text: string) {
-    setStatements((prev) => ({ ...prev, [side]: { ...prev[side], text } }))
-  }
+  useEffect(() => {
+    if (!credentials) return
+    const initial = setTimeout(refresh, 0)
+    const timer = setInterval(refresh, POLL_INTERVAL)
+    return () => {
+      clearTimeout(initial)
+      clearInterval(timer)
+    }
+  }, [credentials, refresh])
 
-  function submitStatement(side: PartySide) {
-    const text = statements[side].text.trim()
-    if (!text) return
-    const next = { ...statements, [side]: { text, submitted: true } }
-    setStatements(next)
-    if (next.A.submitted && next.B.submitted) {
-      setAnalysisReady(false)
-      analysisTimer.current = setTimeout(() => setAnalysisReady(true), 1500)
+  async function handleSubmit() {
+    if (!credentials || !draft.trim() || submitting) return
+    setSubmitting(true)
+    setError("")
+    try {
+      await submitStatement(roomId, credentials.accessToken, draft.trim())
+      setDraft("")
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "提交失败")
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  function editStatement(side: PartySide) {
-    setAnalysisReady(false)
-    setStatements((prev) => ({
-      ...prev,
-      [side]: { ...prev[side], submitted: false },
-    }))
-  }
-
-  async function copyInviteCode() {
+  async function copyInviteCode(code: string) {
     try {
-      await navigator.clipboard.writeText(room.inviteCode)
+      await navigator.clipboard.writeText(code)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // 剪贴板不可用时忽略，邀请码本身已在页面上展示
+      // 剪贴板不可用时忽略，邀请码已展示在页面上
     }
   }
+
+  if (!credentialChecked) {
+    return (
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-10 sm:px-6">
+        <Skeleton className="h-40 rounded-3xl" />
+        <Skeleton className="h-72 rounded-3xl" />
+      </div>
+    )
+  }
+
+  if (!credentials) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
+        <Card className="rounded-3xl shadow-xs">
+          <CardHeader>
+            <CardTitle>你还没有加入这个房间</CardTitle>
+            <CardDescription>
+              房间内容仅对两名参与者开放。请通过首页创建新房间，或使用对方分享的邀请码加入。
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href="/"
+              className={cn(buttonVariants({ size: "lg" }), "rounded-full")}
+            >
+              回到首页
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!state) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
+        <Card className="rounded-3xl shadow-xs">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {error ? "无法打开房间" : (
+                <>
+                  <Loader2 className="size-5 animate-spin text-primary" />
+                  正在进入调解室…
+                </>
+              )}
+            </CardTitle>
+            {error && <CardDescription>{error}</CardDescription>}
+          </CardHeader>
+          {error && (
+            <CardContent className="flex gap-3">
+              <Button variant="outline" className="rounded-full" onClick={refresh}>
+                重试
+              </Button>
+              <Link href="/" className={cn(buttonVariants({ variant: "ghost" }))}>
+                回到首页
+              </Link>
+            </CardContent>
+          )}
+        </Card>
+      </div>
+    )
+  }
+
+  const mySide = state.me.side
+  const otherSide: Side = mySide === "A" ? "B" : "A"
+  const otherParticipant = state.participants.find((p) => p.side === otherSide)
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
@@ -93,32 +184,32 @@ export function RoomView({ room }: { room: MockRoom }) {
         <CardHeader className="gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="rounded-full">
-              {room.disputeType}
+              {state.room.disputeType}
             </Badge>
             <Badge
               variant="secondary"
               className="rounded-full bg-violet-100 text-violet-600"
             >
-              陈述阶段
+              {statusLabels[state.room.status]}
             </Badge>
           </div>
           <CardTitle className="text-xl leading-8 sm:text-2xl">
-            {room.topic}
+            {state.room.topic}
           </CardTitle>
           <CardDescription>
-            双方各自填写自己的想法，提交后对方才会看到状态；双方都提交后，猫咪法官开始分析。
+            双方各自填写想法，提交前内容互相保密；双方都提交后，猫咪法官开始分析。
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-violet-50 px-4 py-3">
             <span className="text-sm text-violet-500">房间邀请码</span>
             <span className="font-mono text-xl font-bold tracking-[0.2em] text-violet-700">
-              {room.inviteCode}
+              {state.room.inviteCode}
             </span>
             <Button
               variant="ghost"
               size="sm"
-              onClick={copyInviteCode}
+              onClick={() => copyInviteCode(state.room.inviteCode)}
               className="ml-auto text-violet-600 hover:bg-violet-100"
             >
               {copied ? <Check /> : <Copy />}
@@ -132,120 +223,165 @@ export function RoomView({ room }: { room: MockRoom }) {
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {room.participants.map((participant) => {
-          const statement = statements[participant.side]
-          const styles = sideStyles[participant.side]
-          return (
-            <Card
-              key={participant.side}
-              className={cn("rounded-3xl shadow-xs", styles.card)}
-            >
-              <CardHeader className="flex-row items-center gap-3">
-                <span className="w-14 shrink-0">
-                  <CatAvatar tone={participant.tone} />
+        <ParticipantCard
+          side={mySide}
+          name={state.me.displayName}
+          isMine
+          submitted={Boolean(state.myStatement)}
+          statement={state.myStatement}
+        >
+          {!state.myStatement && (
+            <div className="flex flex-col gap-3">
+              <Textarea
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                placeholder="从你的角度说说这件事：发生了什么？你有什么感受和需要？"
+                maxLength={2000}
+                className="min-h-40 rounded-2xl bg-white text-sm leading-7"
+                aria-label="我的观点"
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">
+                  {draft.length} / 2000
                 </span>
-                <div className="flex flex-1 flex-col gap-1">
-                  <CardTitle className="text-lg">{participant.name}</CardTitle>
-                  <CardDescription>{participant.roleLabel}</CardDescription>
-                </div>
-                {statement.submitted ? (
-                  <Badge className="rounded-full bg-emerald-100 text-emerald-600">
-                    <CheckCircle2 className="size-3.5" />
-                    已提交
-                  </Badge>
-                ) : (
-                  <Badge className={cn("rounded-full", styles.badge)}>
-                    填写中
-                  </Badge>
-                )}
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                {statement.submitted ? (
-                  <>
-                    <div
-                      className={cn(
-                        "min-h-40 rounded-2xl border p-4 text-sm leading-7 whitespace-pre-wrap",
-                        styles.bubble,
-                      )}
-                    >
-                      {statement.text}
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() => editStatement(participant.side)}
-                    >
-                      修改陈述
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Textarea
-                      value={statement.text}
-                      onChange={(event) =>
-                        updateStatement(participant.side, event.target.value)
-                      }
-                      placeholder="从你的角度说说这件事：发生了什么？你有什么感受和需要？"
-                      maxLength={2000}
-                      className="min-h-40 rounded-2xl bg-white text-sm leading-7"
-                      aria-label={`${participant.name}的观点`}
-                    />
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        {statement.text.length} / 2000
-                      </span>
-                      <Button
-                        className="rounded-full px-6"
-                        disabled={!statement.text.trim()}
-                        onClick={() => submitStatement(participant.side)}
-                      >
-                        提交我的观点
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )
-        })}
+                <Button
+                  className="rounded-full px-6"
+                  disabled={!draft.trim() || submitting}
+                  onClick={handleSubmit}
+                >
+                  {submitting && <Loader2 className="animate-spin" />}
+                  {submitting ? "提交中…" : "提交我的观点"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </ParticipantCard>
+
+        {otherParticipant ? (
+          <ParticipantCard
+            side={otherSide}
+            name={otherParticipant.displayName}
+            submitted={state.otherSubmitted}
+            statement={state.otherStatement}
+          >
+            {!state.otherStatement && (
+              <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-border bg-white/60 p-4 text-center text-sm text-muted-foreground">
+                {state.otherSubmitted
+                  ? "对方已提交，待你也提交后即可互相查看"
+                  : "对方还没有提交，内容在双方提交前互相保密"}
+              </div>
+            )}
+          </ParticipantCard>
+        ) : (
+          <Card className="rounded-3xl border-dashed shadow-xs">
+            <CardContent className="flex h-full min-h-64 flex-col items-center justify-center gap-3 py-8 text-center">
+              <span className="w-14 opacity-40">
+                <CatAvatar tone="blue" />
+              </span>
+              <p className="font-medium text-muted-foreground">
+                等待用户 {otherSide} 加入
+              </p>
+              <p className="text-sm text-muted-foreground">
+                把邀请码 {state.room.inviteCode} 发给对方吧
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
+      {error && (
+        <p role="alert" className="text-center text-sm text-destructive">
+          {error}
+        </p>
+      )}
+
       <Card className="rounded-3xl border-violet-100 bg-violet-50/60 shadow-xs">
-        <CardContent className="flex flex-col items-center gap-4 py-6 text-center">
+        <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
           <div className="flex items-center gap-2 text-sm font-medium text-violet-600">
             <Scale className="size-4" />
-            双方提交状态：{statements.A.submitted ? "A 已提交" : "A 未提交"} ·{" "}
-            {statements.B.submitted ? "B 已提交" : "B 未提交"}
+            双方提交状态：{state.myStatement ? "我已提交" : "我未提交"} ·{" "}
+            {state.otherSubmitted ? "对方已提交" : "对方未提交"}
           </div>
-          {!allSubmitted && (
+          {state.room.status === "waiting" && (
+            <p className="text-sm text-muted-foreground">
+              等待对方加入房间。你可以先提交自己的观点。
+            </p>
+          )}
+          {state.room.status === "collecting" && (
             <p className="text-sm text-muted-foreground">
               等待双方都提交观点后，猫咪法官就会开始分析。
             </p>
           )}
-          {allSubmitted && analyzing && (
-            <p className="flex items-center gap-2 text-sm text-violet-600">
-              <Loader2 className="size-4 animate-spin" />
-              猫咪法官正在认真阅读双方的陈述…
+          {state.room.status === "analyzing" && (
+            <p className="text-sm text-violet-600">
+              双方观点已提交！AI 分析功能将在下一阶段接入，届时会自动生成调解报告。
             </p>
           )}
-          {allSubmitted && !analyzing && (
-            <>
-              <p className="text-sm text-violet-600">
-                分析完成！猫咪法官写好了你们的调解报告。
-              </p>
-              <Link
-                href={`/report/${room.inviteCode}`}
-                className={cn(
-                  buttonVariants({ size: "lg" }),
-                  "h-11 rounded-full px-7",
-                )}
-              >
-                查看调解报告
-              </Link>
-            </>
-          )}
+          <p className="text-xs text-muted-foreground">
+            页面每 3 秒自动同步房间状态，刷新也不会丢失进度。
+          </p>
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function ParticipantCard({
+  side,
+  name,
+  isMine = false,
+  submitted,
+  statement,
+  children,
+}: {
+  side: Side
+  name: string
+  isMine?: boolean
+  submitted: boolean
+  statement: { content: string; submittedAt: string } | null
+  children?: React.ReactNode
+}) {
+  const styles = sideStyles[side]
+
+  return (
+    <Card className={cn("rounded-3xl shadow-xs", styles.card)}>
+      <CardHeader className="flex-row items-center gap-3">
+        <span className="w-14 shrink-0">
+          <CatAvatar tone={side === "A" ? "orange" : "blue"} />
+        </span>
+        <div className="flex flex-1 flex-col gap-1">
+          <CardTitle className="text-lg">
+            {name}
+            {isMine && (
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                （我）
+              </span>
+            )}
+          </CardTitle>
+          <CardDescription>用户 {side}</CardDescription>
+        </div>
+        {submitted ? (
+          <Badge className="rounded-full bg-emerald-100 text-emerald-600">
+            <CheckCircle2 className="size-3.5" />
+            已提交
+          </Badge>
+        ) : (
+          <Badge className={cn("rounded-full", styles.badge)}>未提交</Badge>
+        )}
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {statement && (
+          <div
+            className={cn(
+              "min-h-40 rounded-2xl border p-4 text-sm leading-7 whitespace-pre-wrap",
+              styles.bubble,
+            )}
+          >
+            {statement.content}
+          </div>
+        )}
+        {children}
+      </CardContent>
+    </Card>
   )
 }
