@@ -1,3 +1,8 @@
+# unipilot-ai-competition
+UniPilot AI | 2026 Qoder高校创意大赛，PDF溯源问答、笔记&amp;测验生成
+
+---
+
 # Cat Mediator · 猫咪调解室
 
 AI 双人沟通调解网页应用：两人通过邀请码进入房间，各自提交观点，AI 猫咪法官分析双方立场并生成结构化调解报告，附带开庭、趣味互动与和解任务。
