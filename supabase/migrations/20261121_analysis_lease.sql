@@ -62,7 +62,7 @@ end;
 $$;
 
 -- 仅服务端 service role 可调用，浏览器 anon/authenticated 无权执行
-revoke execute on function claim_room_analysis(uuid, integer) from public;
-revoke execute on function release_room_analysis(uuid, text) from public;
+revoke execute on function claim_room_analysis(uuid, integer) from public, anon, authenticated;
+revoke execute on function release_room_analysis(uuid, text) from public, anon, authenticated;
 grant execute on function claim_room_analysis(uuid, integer) to service_role;
 grant execute on function release_room_analysis(uuid, text) to service_role;
