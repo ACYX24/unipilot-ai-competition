@@ -43,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </header>
         <main className="flex-1">{children}</main>
         <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
-          用理解和幽默，化解每一场小风波 · 当前为演示版本，页面使用模拟数据
+          用理解和幽默，化解每一场小风波 · AI 分析仅辅助沟通，不替代专业心理、法律或危机干预服务
         </footer>
       </body>
     </html>

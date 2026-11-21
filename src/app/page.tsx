@@ -46,7 +46,7 @@ export default function Home() {
       <section className="flex flex-col items-center gap-10 py-12 sm:py-16 md:flex-row md:gap-6">
         <div className="flex flex-1 flex-col items-center gap-6 text-center md:items-start md:text-left">
           <Badge variant="secondary" className="rounded-full px-3 py-1">
-            AI 双人沟通调解 · 演示版
+            AI 双人沟通调解 · 双方提交后自动生成报告
           </Badge>
           <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
             有矛盾，
