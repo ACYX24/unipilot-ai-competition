@@ -1,6 +1,5 @@
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { mockReport } from "@/lib/mock-data"
 import { ReportView } from "./report-view"
 
 export default function ReportPage({
@@ -29,5 +28,5 @@ async function ReportContent({
   params: Promise<{ roomId: string }>
 }) {
   const { roomId } = await params
-  return <ReportView report={mockReport} inviteCode={roomId.toUpperCase()} />
+  return <ReportView roomId={roomId} />
 }

@@ -3,10 +3,10 @@
 import { useState } from "react"
 import { Check, Dices } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import type { MockReport } from "@/lib/mock-data"
+import type { MediationReport } from "@/lib/mediation-report-schema"
 import { cn } from "@/lib/utils"
 
-export function TaskChecklist({ tasks }: { tasks: MockReport["funTasks"] }) {
+export function TaskChecklist({ tasks }: { tasks: MediationReport["funTasks"] }) {
   const [done, setDone] = useState<boolean[]>(tasks.map(() => false))
 
   function toggle(index: number) {
