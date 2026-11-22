@@ -2,9 +2,8 @@
 
 本文档覆盖 Cat Mediator 的上线流程、环境变量、数据库迁移顺序、冒烟验收、AI 分析失败时的降级演练与回滚策略。面向首次部署与后续维护者。
 
-- 适用代码版本：`main` 已合并 `feature/integrate-ui-analysis`（PR #8）之后的基线
+- 适用代码版本：`main` 已合并 PR #8；PR #10 引入原子提交迁移
 - 部署目标：Vercel（首选）或任意 Node.js 24 运行环境
-- 变更类型：仅新增文档，不改动代码与数据结构
 
 ## 1. 前置条件
 
@@ -52,6 +51,7 @@
 | 顺序 | 文件 | 作用 |
 |---|---|---|
 | 1 | `20261121_analysis_lease.sql` | 新增分析租约字段、错误状态字段与相关数据库函数 |
+| 2 | `20261122_atomic_statement_submit.sql` | 新增 `submit_room_statement`，把保存陈述与推进状态放进同一事务 |
 
 执行后核验：
 
@@ -60,12 +60,25 @@
 select column_name from information_schema.columns
 where table_name = 'rooms' and column_name like 'analysis_%';
 -- 函数存在
-select proname from pg_proc where proname like '%analysis_lease%';
+select proname from pg_proc
+where proname in ('claim_room_analysis','release_room_analysis','submit_room_statement');
 ```
 
-> 迁移未执行时，分析接口会返回 `analysis_migration_missing`（页面提示"数据库迁移未执行，请联系管理员"）。看到该错误码说明数据库落后于代码，不要重试，直接执行迁移。
+> 缺少分析字段/租约函数时，分析/状态接口返回 `analysis_migration_missing`；缺少提交函数时，提交接口返回 `statement_migration_missing`。两者都是 503、`retryable: false`，页面提示管理员执行迁移，不要重试。
 
-### 3.3 迁移纪律
+### 3.3 合并与生产迁移顺序
+
+根据生产库是否独立、`main` 是否自动部署，选择以下顺序：
+
+| 场景 | 合并前 | 合并后 |
+|---|---|---|
+| 继续使用已迁移的测试库 | 无额外操作 | 审核通过后直接合并 |
+| 有独立生产库，`main` 不自动部署 | 备份生产库 → 执行 `20261122_atomic_statement_submit.sql` → 验证函数存在 | 部署新代码 |
+| 有独立生产库，且合并 `main` 会立即自动部署 | **先备份并执行 `20261122_atomic_statement_submit.sql`**，确认函数存在 | 再合并 PR，触发部署 |
+
+> 自动部署场景不要把迁移留到合并之后：否则新代码会在迁移前上线，陈述提交会返回 503 `statement_migration_missing`。该错误不会写入半份陈述，补齐迁移后可安全重试。
+
+### 3.4 迁移纪律
 
 - 迁移文件一旦合并进 `main` 就不再改写；修正通过新增迁移完成。
 - 生产执行迁移前先做 schema 备份（Supabase Dashboard → Database → Backups）。
@@ -108,7 +121,10 @@ AI 失败是常态而不是异常路径，上线前建议在 Preview 环境各�
 | 模型返回非 JSON / 结构不合规 | `llm_invalid_output` | "AI 报告格式异常，请重试"，有重试按钮 | **先观察**：服务端已自动重试一次（带修复提示重发），两次都失败才报此错 |
 | 报告写库失败 | `report_persist_failed` | "报告保存失败，请重试" | 重试；连续失败查 Supabase 状态与唯一约束 |
 | 未配置模型 | `llm_not_configured` | "服务端尚未配置 AI 模型，请联系管理员"，无重试按钮 | 补环境变量 |
-| 迁移未执行 | `analysis_migration_missing` | "数据库迁移未执行，请联系管理员"，无重试按钮 | 执行迁移 |
+| 报告照抄原文 | `llm_privacy_violation` | "AI 报告可能照抄了原文，请重试"，有重试按钮 | 重试；连续出现检查模型输出 |
+| 历史报告照抄原文 | `report_privacy_violation` | "报告包含可能泄露原文的内容，已被拦截" | 不重试，管理员检查并重新生成报告 |
+| 分析迁移未执行 | `analysis_migration_missing` | "数据库尚未执行分析迁移，请管理员执行迁移"，无重试按钮 | 执行 `20261121_analysis_lease.sql` |
+| 提交迁移未执行 | `statement_migration_missing` | "数据库尚未执行陈述提交迁移，请管理员执行迁移"，无重试按钮 | 执行 `20261122_atomic_statement_submit.sql` |
 
 降级行为的设计约束（改动时不要破坏）：
 
@@ -126,6 +142,7 @@ AI 失败是常态而不是异常路径，上线前建议在 Preview 环境各�
 | 应用层故障 | Vercel 回滚到上一个 Production Deployment（或 `git revert` 后重新合并，保持 `main` 线性可读） |
 | 分析相关故障 | 关闭/修正 LLM 环境变量，**不要**删除 `mediation_reports` 中已有报告 |
 | 数据库迁移引发问题 | 先回退应用；新增字段与函数可保留（旧代码不读它们）；确认数据保留方案后再决定是否回退 schema |
+| 需要回滚提交 RPC | 先回退代码，再执行 `drop function if exists submit_room_statement(uuid, text, text);` |
 | 房间数据异常 | 房间 7 天过期由 `expires_at` 控制，不做手工删表操作 |
 
 ## 8. CI 与合并纪律
