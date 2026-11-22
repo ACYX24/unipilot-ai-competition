@@ -11,7 +11,7 @@ const statementSchema = z.object({
     .string()
     .trim()
     .min(1, "观点内容不能为空")
-    .max(5000, "观点最多 5000 字"),
+    .max(2000, "观点最多 2000 字"),
 })
 
 export async function POST(

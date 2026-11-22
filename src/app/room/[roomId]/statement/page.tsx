@@ -11,6 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { loadCredentials } from "@/lib/credentials-storage"
 import { fetchRoomState, submitStatement } from "@/lib/room-api"
+import {
+  STATEMENT_MAX_LENGTH,
+  buildStatementContent,
+} from "@/lib/statement-content"
 import { derivePhase, phaseAtLeast } from "@/lib/room-phase"
 import type { ParticipantCredentials, RoomStateResponse } from "@/lib/room-types"
 
@@ -136,20 +140,24 @@ function StatementContent() {
   }
 
   const answeredCount = QUESTIONS.filter((q) => draft[q.id].trim()).length
-  const canSubmit = answeredCount === QUESTIONS.length && !submitting
+  const finalContent = buildStatementContent(
+    QUESTIONS.map((question) => ({
+      title: question.title,
+      value: draft[question.id],
+    })),
+  )
+  const contentLength = finalContent.length
+  const contentTooLong = contentLength > STATEMENT_MAX_LENGTH
+  const canSubmit =
+    answeredCount === QUESTIONS.length && !contentTooLong && !submitting
 
   async function handleSubmit() {
     if (!credentials || !canSubmit) return
     setSubmitting(true)
     setError("")
 
-    // 后端当前只接受单字段 content（Q1 未定前走方案 B：结构化文本）
-    const content = QUESTIONS.map(
-      (q) => `【${q.title}】\n${draft[q.id].trim()}`,
-    ).join("\n\n")
-
     try {
-      await submitStatement(roomId, credentials.accessToken, content)
+      await submitStatement(roomId, credentials.accessToken, finalContent)
       try {
         localStorage.removeItem(`catjudge:draft:${roomId}:${credentials.side}`)
       } catch {
@@ -222,7 +230,7 @@ function StatementContent() {
                 value={draft[question.id]}
                 onChange={(event) => updateDraft(question.id, event.target.value)}
                 placeholder={question.placeholder}
-                maxLength={800}
+                maxLength={2000}
                 className="min-h-24 rounded-2xl border-tang-100 bg-white"
               />
             </div>
@@ -234,9 +242,23 @@ function StatementContent() {
             </p>
           ) : null}
 
+          {contentTooLong ? (
+            <p role="alert" className="text-xs text-destructive">
+              最终陈述超过 {STATEMENT_MAX_LENGTH}{" "}
+              字（含标题与换行），请精简后再提交。
+            </p>
+          ) : null}
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-cocoa-400">
-              已填写 {answeredCount}/{QUESTIONS.length} 个问题 · 提交后不可修改
+            <p
+              className={
+                contentTooLong
+                  ? "text-xs text-destructive"
+                  : "text-xs text-cocoa-400"
+              }
+            >
+              已填写 {answeredCount}/{QUESTIONS.length} 个问题 · 最终陈述{" "}
+              {contentLength}/{STATEMENT_MAX_LENGTH} 字 · 提交后不可修改
             </p>
             <Button
               size="lg"
