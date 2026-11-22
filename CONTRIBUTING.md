@@ -9,30 +9,32 @@
 ## 2. 技术栈统一
 
 - Next.js **16.4.6**（保留现有版本），App Router
-- TypeScript 5 + React 19
-- **pnpm 12**（唯一包管理器，提交 `pnpm-lock.yaml`）
-- Node.js **24.x**（测试脚本依赖原生 TypeScript 支持；Next.js 最低要求为 20.9）
-- Tailwind CSS 4 + shadcn/ui
-- Supabase PostgreSQL（仅服务端 service-role 访问，RLS 不开放匿名策略）
+- TypeScript
+- **pnpm**（唯一包管理器，提交 `pnpm-lock.yaml`）
+- Node.js **24.x**
+- Tailwind CSS 4
+- shadcn/ui
+- Supabase
 - OpenAI 兼容 LLM 接口（仅服务端调用）
 
 禁止未经团队确认擅自升级、降级核心依赖或替换技术栈。
-不得同时保留 `package-lock.json` / `yarn.lock`；新增依赖前需在 PR 中说明用途与影响。
+不得同时保留 `package-lock.json` / `yarn.lock`。
 
 ## 3. 项目目录规范
 
-- 保留现有 `src/app/` 目录结构，页面与 Route Handlers 均在此目录。
+- 保留现有 `src/app/` 目录结构。
 - UI 组件放在 `src/components/`，shadcn 基础组件放在 `src/components/ui/`。
-- 前后端共享类型与工具放在 `src/lib/`。
-- 仅服务端模块放在 `src/lib/server/`（Supabase admin、鉴权、LLM、限流、分析锁）。
-- 数据库建表与增量迁移放在 `supabase/`（`schema.sql` 与 `migrations/`）。
-- 接口契约与设计文档放在 `docs/`。
+- 公共工具函数放在 `src/lib/`。
+- 仅服务端模块放在 `src/lib/server/`。
+- API 路由放在 `src/app/api/`。
+- 数据库建表与增量迁移放在 `supabase/`。
+- 接口契约与设计说明放在 `docs/`。
 
 不得擅自迁移目录或重构项目整体架构。
 
 ## 4. Git 分支管理
 
-- `main`：稳定主分支，**禁止直接 push**。
+- `main`：稳定主分支，禁止直接 push。
 - `feature/xxx`：功能开发分支。
 - `fix/xxx`：问题修复分支。
 - 历史遗留的 `feat/analysis-report` 可继续使用至合并；新分支统一使用 `feature/xxx` / `fix/xxx`。
@@ -50,7 +52,7 @@
 
 ## 5. Commit 规范
 
-采用以下格式：`类型: 简短描述`
+采用以下格式：
 
 - `feat`：新增功能
 - `fix`：修复问题
@@ -77,7 +79,7 @@
 主要负责：
 
 - `src/app/api/`
-- `src/lib/server/`（Supabase、LLM、鉴权、分析锁、报告服务）
+- `src/lib/server/`
 - `src/lib/mediation-report-schema.ts`
 - `supabase/`
 
@@ -86,14 +88,15 @@
 - 产品交互与用户体验
 - 页面及组件开发
 - 前端路由与交互逻辑
-- 分析与反馈页面展示
 - 前端测试与演示材料
 
 主要负责：
 
-- `src/app/page.tsx`、`src/app/create/`、`src/app/room/`、`src/app/report/` 的界面层
+- `src/app/page.tsx`
+- `src/app/create/`
+- `src/app/room/`、`src/app/report/` 的界面层
 - `src/components/`
-- 前端样式与品牌资源
+- 前端页面及样式相关文件
 
 ### 6.2 分支管理
 
@@ -138,22 +141,21 @@
 - 禁止将敏感信息硬编码进源码。
 - `SUPABASE_SERVICE_ROLE_KEY`、`LLM_API_KEY` 仅限服务端读取，禁止使用 `NEXT_PUBLIC_` 前缀。
 - 参与者凭证只通过 `x-participant-token` 请求头传递，禁止放 URL query。
+- 双方原始陈述不得通过接口返回给对方；敏感接口必须校验参与者属于该房间。
 - 日志不得记录访问 token、API Key 或完整用户陈述。
-- 报告与分析接口必须校验参与者属于该房间。
-- 报告生成失败返回可重试状态，不得用 Mock 报告兜底。
-- 数据库写操作只经由服务端 service-role 客户端；分析 RPC 仅授权 `service_role`。
+- 数据库写操作只经由服务端 service-role 客户端。
 
 ## 8. 提交前检查
 
-1. 首次安装使用 `pnpm install`；已有锁文件时使用 `pnpm install --frozen-lockfile`。
-2. `pnpm build` 通过。
-3. `pnpm lint` 通过。
-4. `pnpm test` 通过。
-5. 没有把 `.env` / `.env.local`、API Key、访问 token 提交上去。
-6. 没有提交 `package-lock.json` / `yarn.lock`，`pnpm-lock.yaml` 未被意外改写。
-7. 数据库变更只通过 `supabase/migrations/` 增量执行，不执行 `schema.sql` 里的 `DROP TABLE` 示例。
-8. 未在浏览器 bundle 中引入 `SUPABASE_SERVICE_ROLE_KEY` 或 `LLM_API_KEY`。
-9. 项目启用 `cacheComponents`，Route Handler 不得导出 `runtime` segment config，否则构建失败。
+- 首次安装使用 `pnpm install`；已有锁文件时使用 `pnpm install --frozen-lockfile`。
+- `pnpm build` 通过。
+- `pnpm lint` 通过。
+- `pnpm test` 通过。
+- 没有提交真实密钥、`.env` 或 `.env.local`。
+- 没有提交 `package-lock.json` / `yarn.lock`，`pnpm-lock.yaml` 未被意外改写。
+- API、数据库或环境变量变更已同步更新 `docs/`，数据库变更按增量迁移执行。
+- 项目启用 `cacheComponents`，Route Handler 不得导出 `runtime` segment config。
+- 没有未经授权修改其他模块。
 
 ## 9. 变更管理
 
@@ -165,10 +167,3 @@
 - 项目目录架构
 - 跨模块公共组件
 - 产品核心业务逻辑
-
-## 10. 文档与契约
-
-- API 契约：`docs/API.md`
-- 后端设计、并发与迁移说明：`docs/BACKEND_DESIGN.md`
-- AI 报告结构与 Prompt 约束：`docs/AI_REPORT_SCHEMA.md`
-- API、数据库或环境变量变更必须在同一个 PR 内同步更新对应文档。
