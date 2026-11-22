@@ -5,6 +5,7 @@ import {
   readAccessToken,
 } from "@/lib/server/room-auth"
 import { createSupabaseAdmin } from "@/lib/server/supabase-admin"
+import { isMissingFunctionError } from "@/lib/server/supabase-errors"
 
 const statementSchema = z.object({
   content: z
@@ -56,52 +57,54 @@ export async function POST(
   if (!room || new Date(room.expires_at).getTime() < Date.now()) {
     return Response.json({ error: "房间不存在或已过期" }, { status: 404 })
   }
-  if (room.status !== "waiting" && room.status !== "collecting") {
-    return Response.json(
-      { error: "双方观点已提交完成，不能再修改" },
-      { status: 409 },
-    )
-  }
 
-  // 本阶段不支持修改：每侧只能提交一次，数据库 unique(room_id, side) 兜底
-  const { error: insertError } = await supabase.from("statements").insert({
-    room_id: roomId,
-    side: me.side,
-    content: parsed.data.content,
+  // 保存陈述与推进房间状态在同一数据库事务内完成
+  const { data, error } = await supabase.rpc("submit_room_statement", {
+    p_room_id: roomId,
+    p_side: me.side,
+    p_content: parsed.data.content,
   })
 
-  if (insertError) {
-    if (insertError.code === "23505") {
+  if (error) {
+    if (isMissingFunctionError(error, ["submit_room_statement"])) {
       return Response.json(
-        { error: "你已经提交过观点，暂不支持修改" },
+        {
+          error: "数据库尚未执行陈述提交迁移，请管理员执行迁移",
+          code: "statement_migration_missing",
+          retryable: false,
+        },
+        { status: 503 },
+      )
+    }
+
+    const message = error.message ?? ""
+    if (message.includes("room_not_accepting_statements")) {
+      return Response.json(
+        { error: "双方观点已提交完成，不能再修改", code: "statements_closed" },
         { status: 409 },
       )
     }
+    if (message.includes("room_not_found")) {
+      return Response.json({ error: "房间不存在或已过期" }, { status: 404 })
+    }
+    if (message.includes("invalid_side") || message.includes("empty_content")) {
+      return Response.json({ error: "输入不合法" }, { status: 400 })
+    }
+
     return Response.json({ error: "提交失败，请稍后重试" }, { status: 500 })
   }
 
-  const { count, error: countError } = await supabase
-    .from("statements")
-    .select("id", { count: "exact", head: true })
-    .eq("room_id", roomId)
-
-  if (countError) {
-    return Response.json({ error: "查询提交状态失败" }, { status: 500 })
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row || typeof row.status !== "string") {
+    return Response.json({ error: "提交失败，请稍后重试" }, { status: 500 })
   }
 
-  let status = room.status
-  if (count === 2) {
-    const { error: updateError } = await supabase
-      .from("rooms")
-      .update({ status: "analyzing" })
-      .eq("id", roomId)
-      .eq("status", "collecting")
-
-    if (updateError) {
-      return Response.json({ error: "更新房间状态失败" }, { status: 500 })
-    }
-    status = "analyzing"
-  }
-
-  return Response.json({ ok: true, status }, { status: 201 })
+  return Response.json(
+    {
+      ok: true,
+      status: row.status,
+      alreadySubmitted: !row.inserted,
+    },
+    { status: row.inserted ? 201 : 200 },
+  )
 }

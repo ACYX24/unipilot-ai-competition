@@ -1,14 +1,31 @@
 import { AnalysisError } from "./analysis-errors"
 import { createSupabaseAdmin } from "./supabase-admin"
+import {
+  isMissingAnalysisColumnsError,
+  isMissingFunctionError,
+  type SupabaseErrorLike,
+} from "./supabase-errors"
 
 const LEASE_SECONDS = 90
 
-function isMissingFunction(error: { code?: string; message?: string }) {
-  return (
-    error.code === "PGRST202" ||
-    Boolean(error.message?.includes("claim_room_analysis")) ||
-    Boolean(error.message?.includes("release_room_analysis"))
-  )
+export function mapClaimError(error: SupabaseErrorLike): AnalysisError {
+  if (
+    isMissingFunctionError(error, [
+      "claim_room_analysis",
+      "release_room_analysis",
+    ]) ||
+    isMissingAnalysisColumnsError(error)
+  ) {
+    return new AnalysisError(
+      "analysis_migration_missing",
+      "数据库尚未执行分析迁移，请管理员执行迁移",
+      503,
+      false,
+    )
+  }
+
+  console.error("[analysis] claim failed", { code: error.code })
+  return new AnalysisError("analysis_failed", "领取分析任务失败，请重试", 500, true)
 }
 
 export async function claimRoomAnalysis(roomId: string) {
@@ -19,16 +36,7 @@ export async function claimRoomAnalysis(roomId: string) {
   })
 
   if (error) {
-    if (isMissingFunction(error)) {
-      throw new AnalysisError(
-        "analysis_migration_missing",
-        "数据库尚未执行分析迁移，请联系管理员",
-        503,
-        false,
-      )
-    }
-    console.error("[analysis] claim failed", { code: error.code })
-    throw new AnalysisError("analysis_failed", "领取分析任务失败，请重试", 500, true)
+    throw mapClaimError(error)
   }
 
   return data === true

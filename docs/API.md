@@ -17,6 +17,17 @@ x-participant-token: <创建/加入房间时返回的 accessToken>
 | GET | `/api/rooms/[roomId]/state` | 参与者 | 房间状态；始终不返回对方陈述原文 |
 | POST | `/api/rooms/[roomId]/statements` | 参与者 | 每侧提交一次；双方齐全后状态变为 `analyzing` |
 
+### 1.1 提交陈述的幂等与错误
+
+`POST /api/rooms/[roomId]/statements`
+
+保存陈述与推进房间状态在同一数据库事务内完成：
+
+- 首次提交成功：HTTP `201`，`{ "ok": true, "status": "collecting" | "analyzing", "alreadySubmitted": false }`
+- 同一参与者安全重试：HTTP `200`，保留已保存正文，`alreadySubmitted: true`；如果已有两份陈述但房间仍停留在 `collecting`，本次调用会补齐为 `analyzing`
+- 房间已不接受新陈述：HTTP `409`，`{ "code": "statements_closed" }`
+- 缺少提交迁移：HTTP `503`，`{ "code": "statement_migration_missing", "retryable": false }`
+
 ## 2. 触发分析
 
 `POST /api/rooms/[roomId]/analysis`
@@ -54,10 +65,11 @@ x-participant-token: <创建/加入房间时返回的 accessToken>
 | `llm_auth_failed` | 上游鉴权失败（密钥错误） | 否（需配置） |
 | `llm_upstream_error` | 上游 5xx/网络错误 | 是 |
 | `llm_invalid_output` | JSON 解析或 schema 校验失败（已做一次修复重试） | 是 |
+| `llm_privacy_violation` | 报告照抄原文，已重新生成一次仍不合格 | 是 |
 | `report_persist_failed` | 报告写库失败 | 是 |
-| `analysis_migration_missing` | 数据库未执行增量迁移 | 否（需执行 migration） |
+| `analysis_migration_missing` | 数据库缺少分析字段或租约函数 | 否（HTTP 503，请管理员执行迁移） |
 
-失败时服务端会释放租约并写入 `rooms.analysis_error`，房间保持 `analyzing`，允许再次调用。
+失败时服务端会释放租约并写入 `rooms.analysis_error`，房间保持 `analyzing`，允许再次调用；未成功领取租约的请求不会释放他人的租约。
 
 ## 3. 读取报告
 
@@ -71,6 +83,7 @@ x-participant-token: <创建/加入房间时返回的 accessToken>
 | 401 | token 缺失/无效 | `{ "error": "..." }` |
 | 404 | 房间不存在或已过期 | `{ "error": "..." }` |
 | 409 | 报告尚未生成 | `{ "error": "报告尚未生成", "code": "report_pending", "status": "analyzing" }` |
+| 409 | 历史报告照抄原文，读取时被拦截 | `{ "error": "...", "code": "report_privacy_violation", "retryable": false }` |
 | 500 | 数据库读取失败 | `{ "error": "..." }` |
 
 ```json
@@ -106,6 +119,8 @@ x-participant-token: <创建/加入房间时返回的 accessToken>
 `GET /api/rooms/[roomId]/state` 在原有字段上新增：
 
 隐私约定：该接口**始终不返回对方陈述原文**，响应中不存在 `otherStatement` 字段；`otherSubmitted` 仅表示对方是否已提交，`myStatement` 只返回当前参与者自己的原文。
+
+迁移缺失：缺少 `analysis_*` 字段时返回 HTTP `503`、`{ "code": "analysis_migration_missing", "retryable": false }`，页面提示管理员执行分析迁移；普通数据库故障仍返回 500。
 
 ```ts
 analysis: {
