@@ -1,78 +1,174 @@
-# UniPilot 贡献规范 Contributing Guide
+# UniPilot / Cat Mediator 开发协作规范
 
-## ✅ 技术基线（方案 B，已冻结）
+## 1. 产品定位
 
-- Next.js **16.4.6** App Router，TypeScript，**pnpm**
-- UI：shadcn/ui + Tailwind CSS 4
-- 所有密钥、模型地址统一放在 `.env.local`（模板为 `.env.example`），禁止硬编码在代码里
-- 服务端密钥不得带 `NEXT_PUBLIC_` 前缀
+- 项目名称：Cat Mediator（判判猫）
+- 核心产品：AI 辅助的双人关系沟通与调解平台
+- PDF 处理与问答：辅助功能，不作为当前比赛核心方向。
 
-### 目录约定（固定骨架）
+## 2. 技术栈统一
 
-```
-src/
-├── app/                  # 页面与路由
-│   ├── api/              # Route Handlers（rooms、analysis、report）
-│   ├── create/
-│   ├── room/[roomId]/
-│   └── report/[roomId]/
-├── components/           # UI 组件（shadcn 基础组件放 ui/）
-└── lib/                  # 前后端共享类型与工具
-    └── server/           # 仅服务端：Supabase admin、鉴权、LLM、限流
-supabase/
-├── schema.sql            # 全新环境建表
-└── migrations/           # 已有环境的增量迁移（只增不删）
-docs/                     # API 契约、后端设计、AI 报告 schema
-public/                   # 静态资源
-```
+- Next.js **16.4.6**（保留现有版本），App Router
+- TypeScript 5 + React 19
+- **pnpm 12**（唯一包管理器，提交 `pnpm-lock.yaml`）
+- Node.js **24.x**（测试脚本依赖原生 TypeScript 支持；Next.js 最低要求为 20.9）
+- Tailwind CSS 4 + shadcn/ui
+- Supabase PostgreSQL（仅服务端 service-role 访问，RLS 不开放匿名策略）
+- OpenAI 兼容 LLM 接口（仅服务端调用）
 
-### 包管理器
+禁止未经团队确认擅自升级、降级核心依赖或替换技术栈。
+不得同时保留 `package-lock.json` / `yarn.lock`；新增依赖前需在 PR 中说明用途与影响。
 
-- 只使用 **pnpm**，提交 `pnpm-lock.yaml`
-- 不得同时保留 `package-lock.json` / `yarn.lock`
-- 新增依赖前先在 PR 中说明用途和体积影响，经负责人确认
+## 3. 项目目录规范
 
-## 📝 Git 提交规范
+- 保留现有 `src/app/` 目录结构，页面与 Route Handlers 均在此目录。
+- UI 组件放在 `src/components/`，shadcn 基础组件放在 `src/components/ui/`。
+- 前后端共享类型与工具放在 `src/lib/`。
+- 仅服务端模块放在 `src/lib/server/`（Supabase admin、鉴权、LLM、限流、分析锁）。
+- 数据库建表与增量迁移放在 `supabase/`（`schema.sql` 与 `migrations/`）。
+- 接口契约与设计文档放在 `docs/`。
 
-格式：`类型: 简短描述`
+不得擅自迁移目录或重构项目整体架构。
 
-类型可选：
+## 4. Git 分支管理
 
-- `feat:` 新功能（分析接口、报告页、趣味任务）
-- `fix:` 修复 bug
-- `style:` 格式调整，不改动逻辑
-- `docs:` 修改文档
-- `refactor:` 重构代码
+- `main`：稳定主分支，**禁止直接 push**。
+- `feature/xxx`：功能开发分支。
+- `fix/xxx`：问题修复分支。
+- 历史遗留的 `feat/analysis-report` 可继续使用至合并；新分支统一使用 `feature/xxx` / `fix/xxx`。
 
-示例：
+开发流程：
 
-- `feat: add idempotent analysis endpoint`
-- `feat: add authenticated report api`
-- `fix: handle failed report generation retry`
-- `docs: define mediation report api contract`
+1. 从最新 `main` 创建功能分支。
+2. 独立开发并提交代码。
+3. 创建 Pull Request。
+4. 至少一名独立人工审核者 Approve。
+5. 通过审核后合并到 `main`。
 
-## 🔀 分支与 PR 规则
+统一采用 Merge Commit。禁止强推已有分支；已推送分支的修正使用新提交。
+任何进入 `main` 的 PR，都必须在最新可审查推送后获得至少一名独立人工审核者的 Approve。
 
-- `main`：稳定主分支，**禁止直接 push**
-- 从最新 `main` 切出 `feat/xxx` 或 `fix/xxx`，完成后提 PR
-- PR 必须：跑通 `pnpm build` / `pnpm lint`，说明 API 与数据库变更、migration 执行方式、风险与回滚方式
-- 至少一名负责人 review 后合并
+## 5. Commit 规范
 
-## ✅ 提交前检查清单
+采用以下格式：`类型: 简短描述`
 
-1. `pnpm install` 依赖正常
-2. `pnpm build` 构建无报错
-3. `pnpm lint` 无报错
-4. 有测试时 `pnpm test` 通过
-5. 没有把 `.env` / `.env.local`、API Key、访问 token 提交上去
-6. 数据库变更只通过 `supabase/migrations/` 增量执行，不执行 `schema.sql` 里的 `DROP TABLE` 示例
-7. 未在浏览器 bundle 中引入 `SUPABASE_SERVICE_ROLE_KEY` 或 `LLM_API_KEY`
+- `feat`：新增功能
+- `fix`：修复问题
+- `docs`：修改文档
+- `style`：格式调整
+- `refactor`：代码重构
+- `test`：测试相关
+- `chore`：项目配置与依赖管理
 
-## 🔐 后端与安全约定
+示例：`feat: add room invitation API`
 
-- 参与者身份只通过 `x-participant-token` 请求头传递，禁止放 URL query
-- 报告与分析接口必须先校验参与者属于该房间
-- 服务端只使用 service-role 客户端访问 Supabase，浏览器不直连数据库
-- LLM 调用只在服务端，失败时返回可重试状态，**不得用 Mock 报告兜底**
-- 日志不得记录访问 token、API Key、完整用户陈述
-- AI 报告仅辅助沟通，不替代专业心理、法律或危机干预服务
+## 6. 双人协作规范
+
+### 6.1 团队分工
+
+**成员 A：技术负责人（Backend + AI）**
+
+- 系统架构与技术选型
+- 后端 API 与业务逻辑
+- Supabase 数据库设计
+- AI 模型调用、Prompt 与调解逻辑
+- 身份认证、安全及部署
+
+主要负责：
+
+- `src/app/api/`
+- `src/lib/server/`（Supabase、LLM、鉴权、分析锁、报告服务）
+- `src/lib/mediation-report-schema.ts`
+- `supabase/`
+
+**成员 B：产品与前端负责人（Frontend + UX）**
+
+- 产品交互与用户体验
+- 页面及组件开发
+- 前端路由与交互逻辑
+- 分析与反馈页面展示
+- 前端测试与演示材料
+
+主要负责：
+
+- `src/app/page.tsx`、`src/app/create/`、`src/app/room/`、`src/app/report/` 的界面层
+- `src/components/`
+- 前端样式与品牌资源
+
+### 6.2 分支管理
+
+- `main`：稳定主分支。
+- `feature/ai-backend`：后端与 AI 开发。
+- `feature/ui-frontend`：前端与产品交互开发。
+- `fix/xxx`：问题修复。
+
+### 6.3 协作边界
+
+- 双方优先在各自负责的模块独立开发。
+- 修改对方负责的核心模块前，必须提前沟通。
+- `src/app/room/`、`src/lib/room-types.ts`、`src/lib/room-api.ts` 等公共模块需要双方协商。
+- 数据库 Schema、API 接口及数据类型必须提前约定。
+- 禁止未经沟通修改公共接口。
+- 禁止覆盖对方尚未合并的代码。
+
+### 6.4 开发流程
+
+1. 确定功能需求和负责人。
+2. 双方约定接口、数据结构及文件范围。
+3. 各自在独立分支开发。
+4. 完成本地测试。
+5. 提交 Pull Request。
+6. 由另一位成员审核。
+7. 合并到 `main`。
+
+### 6.5 冲突处理
+
+如果双方修改同一个文件：
+
+- 优先沟通修改方案。
+- 不得直接覆盖对方代码。
+- 涉及公共架构或接口的修改必须双方确认。
+- 合并冲突必须逐处解决，保留双方有效提交历史，不使用强推覆盖。
+
+## 7. 环境变量与安全
+
+- 使用 `.env.local` 保存本地环境变量。
+- `.env.example` 只提供变量名和空值或示例占位符。
+- 禁止提交真实 API Key、数据库密码和访问令牌。
+- 禁止将敏感信息硬编码进源码。
+- `SUPABASE_SERVICE_ROLE_KEY`、`LLM_API_KEY` 仅限服务端读取，禁止使用 `NEXT_PUBLIC_` 前缀。
+- 参与者凭证只通过 `x-participant-token` 请求头传递，禁止放 URL query。
+- 日志不得记录访问 token、API Key 或完整用户陈述。
+- 报告与分析接口必须校验参与者属于该房间。
+- 报告生成失败返回可重试状态，不得用 Mock 报告兜底。
+- 数据库写操作只经由服务端 service-role 客户端；分析 RPC 仅授权 `service_role`。
+
+## 8. 提交前检查
+
+1. 首次安装使用 `pnpm install`；已有锁文件时使用 `pnpm install --frozen-lockfile`。
+2. `pnpm build` 通过。
+3. `pnpm lint` 通过。
+4. `pnpm test` 通过。
+5. 没有把 `.env` / `.env.local`、API Key、访问 token 提交上去。
+6. 没有提交 `package-lock.json` / `yarn.lock`，`pnpm-lock.yaml` 未被意外改写。
+7. 数据库变更只通过 `supabase/migrations/` 增量执行，不执行 `schema.sql` 里的 `DROP TABLE` 示例。
+8. 未在浏览器 bundle 中引入 `SUPABASE_SERVICE_ROLE_KEY` 或 `LLM_API_KEY`。
+9. 项目启用 `cacheComponents`，Route Handler 不得导出 `runtime` segment config，否则构建失败。
+
+## 9. 变更管理
+
+任何涉及以下内容的调整，都必须先提交技术方案并获得团队确认：
+
+- 核心技术栈
+- 数据库结构
+- API 接口
+- 项目目录架构
+- 跨模块公共组件
+- 产品核心业务逻辑
+
+## 10. 文档与契约
+
+- API 契约：`docs/API.md`
+- 后端设计、并发与迁移说明：`docs/BACKEND_DESIGN.md`
+- AI 报告结构与 Prompt 约束：`docs/AI_REPORT_SCHEMA.md`
+- API、数据库或环境变量变更必须在同一个 PR 内同步更新对应文档。
