@@ -308,15 +308,12 @@ export function RoomView({ roomId }: { roomId: string }) {
             side={otherSide}
             name={otherParticipant.displayName}
             submitted={state.otherSubmitted}
-            statement={state.otherStatement}
           >
-            {!state.otherStatement && (
-              <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-border bg-white/60 p-4 text-center text-sm text-muted-foreground">
-                {state.otherSubmitted
-                  ? "对方已提交，待你也提交后即可互相查看"
-                  : "对方还没有提交，内容在双方提交前互相保密"}
-              </div>
-            )}
+            <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-border bg-white/60 p-4 text-center text-sm text-muted-foreground">
+              {state.otherSubmitted
+                ? "对方已提交。双方原文互不可见，AI 会分别阅读并整理为调解报告。"
+                : "对方还没有提交。双方原文始终互不可见。"}
+            </div>
           </ParticipantCard>
         ) : (
           <Card className="rounded-3xl border-dashed shadow-xs">
@@ -426,7 +423,7 @@ function ParticipantCard({
   name: string
   isMine?: boolean
   submitted: boolean
-  statement: { content: string; submittedAt: string } | null
+  statement?: { content: string; submittedAt: string } | null
   children?: React.ReactNode
 }) {
   const styles = sideStyles[side]

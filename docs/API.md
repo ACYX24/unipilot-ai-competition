@@ -14,7 +14,7 @@ x-participant-token: <创建/加入房间时返回的 accessToken>
 |---|---|---|---|
 | POST | `/api/rooms` | 无 | 创建房间，返回 `roomId`、`inviteCode`、`side: "A"`、`accessToken` |
 | POST | `/api/rooms/join` | 无 | 邀请码加入，返回 `side: "B"`、`accessToken` |
-| GET | `/api/rooms/[roomId]/state` | 参与者 | 房间状态；双方提交前不返回对方陈述正文 |
+| GET | `/api/rooms/[roomId]/state` | 参与者 | 房间状态；始终不返回对方陈述原文 |
 | POST | `/api/rooms/[roomId]/statements` | 参与者 | 每侧提交一次；双方齐全后状态变为 `analyzing` |
 
 ## 2. 触发分析

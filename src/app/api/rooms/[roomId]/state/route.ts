@@ -57,8 +57,9 @@ export async function GET(
   }
 
   const myStatement = statements?.find((item) => item.side === me.side)
-  const otherStatement = statements?.find((item) => item.side !== me.side)
-  const bothSubmitted = Boolean(myStatement && otherStatement)
+  const otherSubmitted = Boolean(
+    statements?.some((item) => item.side !== me.side),
+  )
   const leaseActive = Boolean(
     room.analysis_lease_until &&
       new Date(room.analysis_lease_until).getTime() > Date.now(),
@@ -86,15 +87,7 @@ export async function GET(
     myStatement: myStatement
       ? { content: myStatement.content, submittedAt: myStatement.submitted_at }
       : null,
-    // 对方陈述内容只有在双方都提交后才对彼此可见，轮询时只能看到对方是否已提交
-    otherStatement:
-      bothSubmitted && otherStatement
-        ? {
-            content: otherStatement.content,
-            submittedAt: otherStatement.submitted_at,
-          }
-        : null,
-    otherSubmitted: Boolean(otherStatement),
+    otherSubmitted,
     analysis: {
       errorCode: room.analysis_error ?? null,
       leaseActive,

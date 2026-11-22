@@ -50,7 +50,6 @@ export interface RoomStateResponse {
   me: ParticipantView
   participants: ParticipantView[]
   myStatement: StatementView | null
-  otherStatement: StatementView | null
   otherSubmitted: boolean
   analysis: RoomAnalysisState
 }

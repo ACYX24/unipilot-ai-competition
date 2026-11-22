@@ -48,7 +48,7 @@ docs/                    # API 契约、后端设计、AI 报告 schema
 |---|---|---|
 | POST | `/api/rooms` | 创建房间（用户 A） |
 | POST | `/api/rooms/join` | 邀请码加入（用户 B） |
-| GET | `/api/rooms/[roomId]/state` | 房间状态（双方提交前隐藏对方正文） |
+| GET | `/api/rooms/[roomId]/state` | 房间状态（双方原文始终互不可见） |
 | POST | `/api/rooms/[roomId]/statements` | 提交观点，每侧一次 |
 | POST | `/api/rooms/[roomId]/analysis` | 触发 AI 分析（幂等、防重复、失败可重试） |
 | GET | `/api/rooms/[roomId]/report` | 读取已持久化报告（参与者鉴权） |
