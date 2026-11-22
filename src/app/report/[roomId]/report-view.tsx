@@ -154,7 +154,7 @@ export function ReportView({ roomId }: { roomId: string }) {
                 刷新
               </Button>
               <Link
-                href={`/room/${roomId}`}
+                href={`/room/${roomId}?legacy=1`}
                 className={cn(buttonVariants({ variant: "ghost" }))}
               >
                 返回房间
@@ -181,7 +181,7 @@ export function ReportView({ roomId }: { roomId: string }) {
                 重试
               </Button>
               <Link
-                href={`/room/${roomId}`}
+                href={`/room/${roomId}?legacy=1`}
                 className={cn(buttonVariants({ variant: "ghost" }))}
               >
                 返回房间
@@ -383,13 +383,13 @@ export function ReportView({ roomId }: { roomId: string }) {
 
       <div className="flex flex-col justify-center gap-3 pb-4 sm:flex-row">
         <Link
-          href={`/room/${roomId}`}
+          href={`/room/${roomId}?legacy=1`}
           className={cn(
             buttonVariants({ variant: "outline", size: "lg" }),
             "h-11 rounded-full px-6",
           )}
         >
-          返回房间
+          返回房间详情
         </Link>
         <Link
           href="/"
