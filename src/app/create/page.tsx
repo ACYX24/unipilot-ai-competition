@@ -52,17 +52,17 @@ export default function CreateRoomPage() {
         <div className="w-24">
           <CatMascot />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          开一间猫咪调解室
+        <h1 className="text-2xl font-extrabold tracking-tight text-cocoa-800 sm:text-3xl">
+          创建你们的调解房间
         </h1>
-        <p className="text-sm text-muted-foreground">
-          说说你们的小矛盾，创建后把邀请码发给另一半
+        <p className="text-sm text-cocoa-500">
+          说说你们的小矛盾，创建后把邀请码发给对方
         </p>
       </div>
 
-      <Card className="rounded-3xl shadow-xs">
+      <Card className="gap-0 rounded-3xl border-tang-100 shadow-soft">
         <CardHeader>
-          <CardTitle className="text-lg">房间信息</CardTitle>
+          <CardTitle className="text-lg text-cocoa-700">房间信息</CardTitle>
           <CardDescription>
             创建后你将成为用户 A，拥有独立的访问凭证
           </CardDescription>
@@ -93,8 +93,8 @@ export default function CreateRoomPage() {
                     className={cn(
                       "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
                       disputeType === type
-                        ? "border-primary/40 bg-rose-100 font-medium text-rose-500"
-                        : "border-border bg-white text-muted-foreground hover:bg-muted",
+                        ? "border-tang-200 bg-tang-100 font-bold text-tang-600"
+                        : "border-border bg-white text-cocoa-500 hover:bg-tang-50",
                     )}
                   >
                     {type}
@@ -125,7 +125,7 @@ export default function CreateRoomPage() {
               type="submit"
               size="lg"
               disabled={!canSubmit}
-              className="h-12 rounded-full text-base"
+              className="h-12 rounded-full bg-tang-400 text-base font-bold text-white shadow-soft hover:bg-tang-500"
             >
               {submitting && <Loader2 className="animate-spin" />}
               {submitting ? "创建中…" : "创建调解房间"}
