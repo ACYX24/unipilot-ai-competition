@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   verify:
-    name: build & lint
+    name: build, lint & test
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -37,30 +37,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 规范要求 pnpm 为唯一包管理器
-      # TODO(Q5)：仓库换上 pnpm-lock.yaml 后，改为 --frozen-lockfile 并开启缓存
+      # 规范要求 pnpm 为唯一包管理器，锁文件必须参与安装
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 12.21.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
+          cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Build (含 TypeScript 检查)
-        run: pnpm build
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
 
+      - name: Test
+        run: pnpm test
+
+      - name: Build (含 TypeScript 检查)
+        run: pnpm build
+
       - name: 检查是否误提交了环境变量文件
         run: |
-          tracked=$(git ls-files | grep -E '(^|/)\.env(\.|$)' | grep -v '\.env\.example' || true)
+          tracked=$(git ls-files | grep -E '(^|/)\.env(\.|$)' | grep -vFx '.env.example' || true)
           if [ -n "$tracked" ]; then
             echo "::error::发现被提交的环境变量文件：$tracked"
             exit 1
