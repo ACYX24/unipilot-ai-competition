@@ -1,120 +1,169 @@
 import Link from "next/link";
-import { Dices, FileHeart, MessagesSquare, Scale } from "lucide-react";
 import { CatMascot } from "@/components/cat-mascot";
 import { JoinRoomDialog } from "@/components/join-room-dialog";
-import { Badge } from "@/components/ui/badge";
+import { SheepMascot } from "@/components/sheep-mascot";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+const steps = [
+  {
+    emoji: "🏠",
+    title: "创建房间 · 邀请同伴",
+    description:
+      "一方描述争议事件、选择矛盾类型，生成邀请码；另一方凭码加入，全程看不到对方的原始文字。",
+  },
+  {
+    emoji: "📝",
+    title: "独立陈述 · 互不可见",
+    description:
+      "双方分别填写事情经过、感受、在意的点与期待，草稿只属于自己，提交后才进入下一阶段。",
+  },
+  {
+    emoji: "💌",
+    title: "AI 私人反馈 · 各自可见",
+    description:
+      "判判猫分别给两个人写一封私人信：做得好的地方、沟通误区、推荐的表达方式，还有一句温柔鼓励。",
+  },
+  {
+    emoji: "🔄",
+    title: "共同观点转述",
+    description:
+      "你的观点由 AI 转述给对方，对方的需求也讲给你听——不公开原文，也不把推测当成事实。",
+  },
+  {
+    emoji: "🤝",
+    title: "互动与改善约定",
+    description:
+      "猫咪开庭、掷石子、和解行动卡，三个小仪式帮你们把「听懂」变成「下一步一起做」。",
+  },
+];
 
 const features = [
   {
-    icon: MessagesSquare,
-    title: "异步说出心里话",
-    description: "两人各自独立填写观点，不用面对面争执，也不用等对方同时在线。",
-    className: "bg-rose-50 text-rose-400",
+    emoji: "🙈",
+    title: "隐私优先",
+    description: "双方永远看不到对方的原始陈述，只接收经 AI 整理、可公开的观点转述。",
   },
   {
-    icon: Scale,
-    title: "AI 中立分析",
-    description: "猫咪法官不站队，识别双方的情绪、真实需求和沟通中的误区。",
-    className: "bg-sky-50 text-sky-500",
+    emoji: "⚖️",
+    title: "温柔但客观",
+    description: "判判猫不站队、不和稀泥，它敢于分别指出双方各自的问题。",
   },
   {
-    icon: FileHeart,
-    title: "结构化调解报告",
-    description: "观点总结、共同需求与具体改善建议，一份报告说清楚。",
-    className: "bg-violet-50 text-violet-500",
-  },
-  {
-    icon: Dices,
-    title: "趣味和解任务",
-    description: "用轻松的小互动收尾，把「讲道理」变成「更亲近」。",
-    className: "bg-amber-50 text-amber-500",
+    emoji: "🐾",
+    title: "带走行动",
+    description: "流程终点不是一份判决书，而是双方共同选定的和解行动卡。",
   },
 ];
 
 export default function Home() {
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
-      <section className="flex flex-col items-center gap-10 py-12 sm:py-16 md:flex-row md:gap-6">
-        <div className="flex flex-1 flex-col items-center gap-6 text-center md:items-start md:text-left">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            AI 双人沟通调解 · 演示版
-          </Badge>
-          <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-            有矛盾，
-            <br />
-            找<span className="text-primary">猫咪法官</span>评评理
-          </h1>
-          <p className="max-w-md text-base leading-7 text-muted-foreground sm:text-lg">
-            和 TA 各自写下心里话，AI
-            猫咪法官中立分析双方的情绪与需求，生成一份温柔又实用的调解报告。
-          </p>
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-            <Link
-              href="/create"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "h-12 rounded-full px-7 text-base",
-              )}
-            >
-              创建调解房间
-            </Link>
-            <JoinRoomDialog />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            无需注册 · 邀请码进入 · 双方提交后自动生成报告
-          </p>
+    <div className="mx-auto w-full max-w-5xl px-4 pb-10 pt-10 sm:px-6 sm:pt-14">
+      <section className="flex flex-col items-center text-center">
+        <span className="inline-flex items-center gap-1 rounded-full bg-tang-100 px-3 py-1 text-xs font-bold text-tang-600">
+          ✨ AI 双人关系沟通与冲突调解
+        </span>
+
+        <h1 className="mt-5 max-w-2xl text-3xl font-extrabold leading-tight tracking-tight text-cocoa-800 sm:text-4xl lg:text-5xl">
+          不急着判断谁对谁错
+          <br />
+          <span className="text-tang-500">先让彼此听懂对方</span>
+          <span className="inline-block align-middle"> 🐱</span>
+        </h1>
+
+        <p className="mt-5 max-w-xl text-base leading-7 text-cocoa-500 sm:text-lg">
+          CatJudge 让双方分别陈述、互相看不见原文，由温柔的 AI
+          判判猫提供私人反馈，再把彼此的观点与真实需求转述给对方——把争吵，翻译成一次听懂。
+        </p>
+
+        <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+          <Link
+            href="/create"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "h-12 w-full rounded-full bg-tang-400 px-7 text-base font-bold text-white shadow-soft hover:bg-tang-500 sm:w-auto",
+            )}
+          >
+            创建调解房间
+          </Link>
+          <JoinRoomDialog />
         </div>
-        <div className="relative flex w-full max-w-xs flex-1 items-center justify-center md:max-w-sm">
-          <div className="absolute inset-4 rounded-full bg-rose-100/70" />
-          <div className="absolute inset-10 rounded-full bg-violet-100/60" />
-          <CatMascot className="relative drop-shadow-sm" />
+
+        <div className="mt-10 flex items-center justify-center gap-6 sm:gap-10">
+          <div className="w-20 shrink-0 sm:w-24">
+            <CatMascot />
+          </div>
+          <div className="max-w-[14rem] text-center">
+            <p className="text-sm font-bold text-tang-500">两人各自陈述，互不可见</p>
+            <p className="mt-1 text-xs leading-5 text-cocoa-400">
+              观点与需求由判判猫转述，原文不上桌
+            </p>
+          </div>
+          <div className="w-20 shrink-0 sm:w-24">
+            <SheepMascot />
+          </div>
         </div>
       </section>
 
-      <section className="pb-14 sm:pb-20">
-        <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            一间调解室，四种化解方式
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-            从「各说各话」到「互相听懂」，猫咪法官全程陪伴
-          </p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => (
+      <section className="mt-16 sm:mt-20">
+        <h2 className="text-center text-2xl font-extrabold text-cocoa-800 sm:text-3xl">
+          一次完整的调解，分五步走 <span className="text-tang-400">🐾</span>
+        </h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {steps.map((step, index) => (
             <Card
-              key={feature.title}
-              className="rounded-3xl border-border/70 shadow-xs transition-shadow hover:shadow-md"
+              key={step.title}
+              className="relative gap-0 rounded-3xl border-tang-100 bg-white/90 shadow-soft transition-all hover:-translate-y-1 hover:shadow-lift"
             >
-              <CardHeader>
-                <div
-                  className={cn(
-                    "mb-2 flex size-11 items-center justify-center rounded-2xl",
-                    feature.className,
-                  )}
-                >
-                  <feature.icon className="size-5" />
-                </div>
-                <CardTitle className="text-base">{feature.title}</CardTitle>
+              <span className="absolute -top-4 left-6 flex h-9 w-9 items-center justify-center rounded-full bg-tang-400 text-sm font-extrabold text-white shadow-soft">
+                {index + 1}
+              </span>
+              <CardHeader className="pt-7">
+                <div className="text-3xl">{step.emoji}</div>
+                <CardTitle className="mt-2 text-lg font-extrabold text-cocoa-700">
+                  {step.title}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="leading-6">
-                  {feature.description}
-                </CardDescription>
+                <p className="text-sm leading-6 text-cocoa-500">{step.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
+
+      <section className="mt-16 rounded-[2.5rem] border border-tang-100 bg-cream-50 p-8 shadow-soft sm:mt-20 sm:p-12">
+        <h2 className="text-center text-2xl font-extrabold text-cocoa-800 sm:text-3xl">
+          为什么是 CatJudge？
+        </h2>
+        <div className="mt-8 grid gap-6 sm:grid-cols-3">
+          {features.map((feature) => (
+            <div key={feature.title} className="px-2 text-center">
+              <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-tang-100 text-3xl">
+                {feature.emoji}
+              </div>
+              <h3 className="mt-4 font-extrabold text-cocoa-700">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-cocoa-500">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-10 text-center">
+          <Link
+            href="/create"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "h-12 rounded-full bg-tang-400 px-7 text-base font-bold text-white shadow-soft hover:bg-tang-500",
+            )}
+          >
+            创建你们的第一个调解房间 🐾
+          </Link>
+        </div>
+      </section>
+
+      <p className="mt-8 text-center text-xs leading-5 text-cocoa-400">
+        判判猫不替任何一方下判决，也不把推测当成事实 · 房间数据仅用于本次调解
+      </p>
     </div>
   );
 }
