@@ -1,18 +1,43 @@
+"use client"
+
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import {
   AlertTriangle,
   Heart,
   Lightbulb,
+  Loader2,
   MessageSquareQuote,
+  RotateCw,
   ScanHeart,
+  ShieldAlert,
 } from "lucide-react"
 import { CatAvatar, CatMascot } from "@/components/cat-mascot"
 import { Badge } from "@/components/ui/badge"
-import { buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { MockReport } from "@/lib/mock-data"
+import { Skeleton } from "@/components/ui/skeleton"
+import { loadCredentials } from "@/lib/credentials-storage"
+import type { MediationReport } from "@/lib/mediation-report-schema"
+import { RoomApiError, fetchRoomReport } from "@/lib/room-api"
+import type { ParticipantCredentials, RoomReportResponse } from "@/lib/room-types"
 import { cn } from "@/lib/utils"
 import { TaskChecklist } from "./task-checklist"
+
+const POLL_INTERVAL = 3000
+
+function formatGeneratedAt(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+}
 
 function SectionTitle({
   icon: Icon,
@@ -38,13 +63,138 @@ function SectionTitle({
   )
 }
 
-export function ReportView({
-  report,
-  inviteCode,
-}: {
-  report: MockReport
-  inviteCode: string
-}) {
+export function ReportView({ roomId }: { roomId: string }) {
+  const [credentials, setCredentials] =
+    useState<ParticipantCredentials | null>(null)
+  const [credentialChecked, setCredentialChecked] = useState(false)
+  const [reportData, setReportData] = useState<RoomReportResponse | null>(null)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCredentials(loadCredentials(roomId))
+      setCredentialChecked(true)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [roomId])
+
+  const load = useCallback(async () => {
+    if (!credentials) return
+    try {
+      const data = await fetchRoomReport(roomId, credentials.accessToken)
+      setReportData(data)
+      setPending(false)
+      setError("")
+    } catch (err) {
+      if (err instanceof RoomApiError && err.code === "report_pending") {
+        setPending(true)
+        setError("")
+        return
+      }
+      setError(err instanceof Error ? err.message : "加载报告失败")
+    }
+  }, [credentials, roomId])
+
+  useEffect(() => {
+    if (!credentials || reportData) return
+    const initial = setTimeout(load, 0)
+    const timer = setInterval(load, POLL_INTERVAL)
+    return () => {
+      clearTimeout(initial)
+      clearInterval(timer)
+    }
+  }, [credentials, load, reportData])
+
+  if (!credentialChecked) {
+    return (
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6">
+        <Skeleton className="h-52 rounded-3xl" />
+        <Skeleton className="h-64 rounded-3xl" />
+      </div>
+    )
+  }
+
+  if (!credentials) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
+        <Card className="rounded-3xl shadow-xs">
+          <CardHeader>
+            <CardTitle>你还没有加入这个房间</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground">
+            <p>调解报告仅对房间的两位参与者开放。</p>
+            <Link
+              href="/"
+              className={cn(buttonVariants({ size: "lg" }), "w-fit rounded-full")}
+            >
+              回到首页
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!reportData && pending) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
+        <Card className="rounded-3xl shadow-xs">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Loader2 className="size-5 animate-spin text-primary" />
+              猫咪法官正在整理报告…
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground">
+            <p>双方观点已提交，分析完成后本页会自动显示报告，通常需要 10–30 秒。</p>
+            <div className="flex gap-3">
+              <Button variant="outline" className="rounded-full" onClick={load}>
+                <RotateCw />
+                刷新
+              </Button>
+              <Link
+                href={`/room/${roomId}?legacy=1`}
+                className={cn(buttonVariants({ variant: "ghost" }))}
+              >
+                返回房间
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!reportData) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
+        <Card className="rounded-3xl shadow-xs">
+          <CardHeader>
+            <CardTitle>无法加载报告</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground">
+            <p>{error || "请返回房间确认双方是否都已提交观点。"}</p>
+            <div className="flex gap-3">
+              <Button variant="outline" className="rounded-full" onClick={load}>
+                <RotateCw />
+                重试
+              </Button>
+              <Link
+                href={`/room/${roomId}?legacy=1`}
+                className={cn(buttonVariants({ variant: "ghost" }))}
+              >
+                返回房间
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const report: MediationReport = reportData.report
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10">
       <Card className="overflow-hidden rounded-3xl border-violet-100 bg-gradient-to-br from-rose-50 via-white to-violet-50 shadow-xs">
@@ -57,7 +207,8 @@ export function ReportView({
               variant="secondary"
               className="mx-auto w-fit rounded-full sm:mx-0"
             >
-              房间 {inviteCode} · {report.generatedAt}
+              房间 {reportData.inviteCode} ·{" "}
+              {formatGeneratedAt(reportData.generatedAt)}
             </Badge>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               猫咪法官的调解报告
@@ -222,15 +373,23 @@ export function ReportView({
         <TaskChecklist tasks={report.funTasks} />
       </section>
 
+      <div className="flex items-start gap-2 rounded-2xl bg-muted/60 p-4 text-xs leading-6 text-muted-foreground">
+        <ShieldAlert className="mt-0.5 size-4 shrink-0" />
+        <p>
+          AI 分析仅用于辅助沟通，不替代专业心理、法律或危机干预服务。
+          本报告由 {reportData.model || "AI 模型"} 生成，请结合实际情况理性参考。
+        </p>
+      </div>
+
       <div className="flex flex-col justify-center gap-3 pb-4 sm:flex-row">
         <Link
-          href={`/room/${inviteCode}`}
+          href={`/room/${roomId}?legacy=1`}
           className={cn(
             buttonVariants({ variant: "outline", size: "lg" }),
             "h-11 rounded-full px-6",
           )}
         >
-          返回房间
+          返回房间详情
         </Link>
         <Link
           href="/"

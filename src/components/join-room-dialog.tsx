@@ -56,15 +56,15 @@ export function JoinRoomDialog() {
           <Button
             variant="outline"
             size="lg"
-            className="h-12 rounded-full px-7 text-base"
+            className="h-12 w-full rounded-full border-2 border-tang-200 bg-white px-7 text-base font-bold text-tang-600 hover:border-tang-400 hover:text-tang-500 sm:w-auto"
           />
         }
       >
         加入调解房间
       </DialogTrigger>
-      <DialogContent className="rounded-3xl sm:max-w-sm">
+      <DialogContent className="rounded-3xl border-tang-100 sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>加入调解房间</DialogTitle>
+          <DialogTitle className="text-cocoa-700">加入调解房间</DialogTitle>
           <DialogDescription>
             输入对方分享给你的房间邀请码，你将成为用户 B。
           </DialogDescription>
@@ -102,7 +102,7 @@ export function JoinRoomDialog() {
             type="submit"
             size="lg"
             disabled={!canSubmit}
-            className="h-11 rounded-full"
+            className="h-11 rounded-full bg-tang-400 font-bold text-white shadow-soft hover:bg-tang-500"
           >
             {submitting && <Loader2 className="animate-spin" />}
             {submitting ? "加入中…" : "进入房间"}

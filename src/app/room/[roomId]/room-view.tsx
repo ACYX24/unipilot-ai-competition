@@ -1,8 +1,16 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { Check, CheckCircle2, Copy, Loader2, Scale } from "lucide-react"
+import {
+  Check,
+  CheckCircle2,
+  Copy,
+  FileHeart,
+  Loader2,
+  RotateCw,
+  Scale,
+} from "lucide-react"
 import { CatAvatar } from "@/components/cat-mascot"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -16,7 +24,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { loadCredentials } from "@/lib/credentials-storage"
-import { fetchRoomState, submitStatement } from "@/lib/room-api"
+import { formatAnalysisError, isAnalysisErrorRetryable } from "@/lib/analysis-status"
+import { fetchRoomState, generateRoomAnalysis, submitStatement } from "@/lib/room-api"
 import type {
   ParticipantCredentials,
   RoomStateResponse,
@@ -26,11 +35,12 @@ import type {
 import { cn } from "@/lib/utils"
 
 const POLL_INTERVAL = 3000
+const ANALYSIS_RETRY_INTERVAL = 8000
 
 const statusLabels: Record<RoomStatus, string> = {
   waiting: "等待对方加入",
   collecting: "观点收集中",
-  analyzing: "双方已提交",
+  analyzing: "AI 分析中",
   completed: "调解已完成",
 }
 
@@ -56,6 +66,9 @@ export function RoomView({ roomId }: { roomId: string }) {
   const [draft, setDraft] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [analysisError, setAnalysisError] = useState("")
+  const [analysisPending, setAnalysisPending] = useState(false)
+  const lastAnalysisAttemptRef = useRef(0)
 
   useEffect(() => {
     // localStorage 仅在浏览器可用，放到异步回调中读取以避免 SSR 不一致
@@ -86,6 +99,36 @@ export function RoomView({ roomId }: { roomId: string }) {
       clearInterval(timer)
     }
   }, [credentials, refresh])
+
+  const triggerAnalysis = useCallback(async () => {
+    if (!credentials) return
+    lastAnalysisAttemptRef.current = Date.now()
+    setAnalysisPending(true)
+    setAnalysisError("")
+    try {
+      await generateRoomAnalysis(roomId, credentials.accessToken)
+      await refresh()
+    } catch (err) {
+      setAnalysisError(err instanceof Error ? err.message : "分析失败，请稍后重试")
+    } finally {
+      setAnalysisPending(false)
+    }
+  }, [credentials, roomId, refresh])
+
+  useEffect(() => {
+    if (!credentials || !state) return
+    if (state.room.status !== "analyzing") return
+    if (state.analysis.leaseActive || state.analysis.errorCode) return
+    if (analysisError || analysisPending) return
+    if (Date.now() - lastAnalysisAttemptRef.current < ANALYSIS_RETRY_INTERVAL) return
+    void triggerAnalysis()
+  }, [analysisError, analysisPending, credentials, state, triggerAnalysis])
+
+  async function retryAnalysis() {
+    lastAnalysisAttemptRef.current = 0
+    setAnalysisError("")
+    await triggerAnalysis()
+  }
 
   async function handleSubmit() {
     if (!credentials || !draft.trim() || submitting) return
@@ -177,6 +220,9 @@ export function RoomView({ roomId }: { roomId: string }) {
   const mySide = state.me.side
   const otherSide: Side = mySide === "A" ? "B" : "A"
   const otherParticipant = state.participants.find((p) => p.side === otherSide)
+  const analysisErrorText =
+    analysisError || formatAnalysisError(state.analysis.errorCode)
+  const canRetryAnalysis = isAnalysisErrorRetryable(state.analysis.errorCode)
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
@@ -262,15 +308,12 @@ export function RoomView({ roomId }: { roomId: string }) {
             side={otherSide}
             name={otherParticipant.displayName}
             submitted={state.otherSubmitted}
-            statement={state.otherStatement}
           >
-            {!state.otherStatement && (
-              <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-border bg-white/60 p-4 text-center text-sm text-muted-foreground">
-                {state.otherSubmitted
-                  ? "对方已提交，待你也提交后即可互相查看"
-                  : "对方还没有提交，内容在双方提交前互相保密"}
-              </div>
-            )}
+            <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-border bg-white/60 p-4 text-center text-sm text-muted-foreground">
+              {state.otherSubmitted
+                ? "对方已提交。双方原文互不可见，AI 会分别阅读并整理为调解报告。"
+                : "对方还没有提交。双方原文始终互不可见。"}
+            </div>
           </ParticipantCard>
         ) : (
           <Card className="rounded-3xl border-dashed shadow-xs">
@@ -312,10 +355,52 @@ export function RoomView({ roomId }: { roomId: string }) {
               等待双方都提交观点后，猫咪法官就会开始分析。
             </p>
           )}
-          {state.room.status === "analyzing" && (
-            <p className="text-sm text-violet-600">
-              双方观点已提交！AI 分析功能将在下一阶段接入，届时会自动生成调解报告。
-            </p>
+          {state.room.status === "analyzing" &&
+            (analysisErrorText ? (
+              <div className="flex flex-col items-center gap-3">
+                <p role="alert" className="text-sm text-destructive">
+                  {analysisErrorText}
+                </p>
+                {canRetryAnalysis && (
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    disabled={analysisPending}
+                    onClick={retryAnalysis}
+                  >
+                    {analysisPending ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <RotateCw />
+                    )}
+                    {analysisPending ? "重试中…" : "重试分析"}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-violet-600">
+                <Loader2 className="size-4 animate-spin" />
+                {state.analysis.leaseActive || analysisPending
+                  ? "猫咪法官正在阅读双方陈述、生成报告…通常需要 10–30 秒"
+                  : "双方观点已齐全，正在准备分析…"}
+              </div>
+            ))}
+          {state.room.status === "completed" && (
+            <>
+              <p className="text-sm text-violet-600">
+                调解报告已生成，两位参与者看到的是同一份报告。
+              </p>
+              <Link
+                href={`/report/${roomId}`}
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "rounded-full px-6",
+                )}
+              >
+                <FileHeart className="size-4" />
+                查看调解报告
+              </Link>
+            </>
           )}
           <p className="text-xs text-muted-foreground">
             页面每 3 秒自动同步房间状态，刷新也不会丢失进度。
@@ -338,7 +423,7 @@ function ParticipantCard({
   name: string
   isMine?: boolean
   submitted: boolean
-  statement: { content: string; submittedAt: string } | null
+  statement?: { content: string; submittedAt: string } | null
   children?: React.ReactNode
 }) {
   const styles = sideStyles[side]

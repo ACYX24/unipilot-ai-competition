@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { RoomView } from "./room-view"
+import { RoomStageGate } from "./stage-gate"
 
 export default function RoomPage({
   params,
@@ -30,5 +30,5 @@ async function RoomContent({
   params: Promise<{ roomId: string }>
 }) {
   const { roomId } = await params
-  return <RoomView roomId={roomId} />
+  return <RoomStageGate roomId={roomId} />
 }

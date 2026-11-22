@@ -26,7 +26,9 @@ export async function GET(
   const supabase = createSupabaseAdmin()
   const { data: room, error: roomError } = await supabase
     .from("rooms")
-    .select("id, invite_code, topic, dispute_type, status, expires_at")
+    .select(
+      "id, invite_code, topic, dispute_type, status, expires_at, analysis_error, analysis_lease_until",
+    )
     .eq("id", roomId)
     .maybeSingle()
 
@@ -55,8 +57,13 @@ export async function GET(
   }
 
   const myStatement = statements?.find((item) => item.side === me.side)
-  const otherStatement = statements?.find((item) => item.side !== me.side)
-  const bothSubmitted = Boolean(myStatement && otherStatement)
+  const otherSubmitted = Boolean(
+    statements?.some((item) => item.side !== me.side),
+  )
+  const leaseActive = Boolean(
+    room.analysis_lease_until &&
+      new Date(room.analysis_lease_until).getTime() > Date.now(),
+  )
 
   const response: RoomStateResponse = {
     room: {
@@ -80,15 +87,13 @@ export async function GET(
     myStatement: myStatement
       ? { content: myStatement.content, submittedAt: myStatement.submitted_at }
       : null,
-    // 对方陈述内容只有在双方都提交后才对彼此可见，轮询时只能看到对方是否已提交
-    otherStatement:
-      bothSubmitted && otherStatement
-        ? {
-            content: otherStatement.content,
-            submittedAt: otherStatement.submitted_at,
-          }
-        : null,
-    otherSubmitted: Boolean(otherStatement),
+    otherSubmitted,
+    analysis: {
+      errorCode: room.analysis_error ?? null,
+      leaseActive,
+      canRetry: room.status === "analyzing" && !leaseActive,
+      reportReady: room.status === "completed",
+    },
   }
 
   return Response.json(response)

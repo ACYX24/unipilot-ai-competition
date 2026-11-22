@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CatAvatar } from "@/components/cat-mascot";
+import { SiteNav } from "@/components/site-nav";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,8 +19,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cat Mediator · 猫咪调解室",
-  description: "AI 双人沟通调解：各自写下心里话，猫咪法官帮你生成温柔的调解报告。",
+  title: "CatJudge · 判判猫｜AI 双人关系沟通与冲突调解",
+  description:
+    "双方各自独立陈述、互相看不见原文，由 AI 判判猫分别整理事实、感受与需求，生成一份双方共享的调解报告——把争吵翻译成一次听懂。",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -25,25 +30,64 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <header className="border-b border-border/60 bg-background/80">
-          <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 px-4 sm:px-6">
-            <Link href="/" className="flex items-center gap-2.5">
+      <body className="flex min-h-full flex-col">
+        <header className="sticky top-0 z-50 border-b border-tang-100 bg-cream-100/85 backdrop-blur-md">
+          <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
+            <Link
+              href="/"
+              className="flex shrink-0 items-center gap-2.5 transition-transform hover:scale-105"
+            >
               <span className="w-9 shrink-0">
                 <CatAvatar />
               </span>
-              <span className="text-lg font-bold tracking-tight">
-                Cat Mediator
+              <span className="text-lg font-extrabold tracking-tight text-cocoa-700">
+                CatJudge
               </span>
-              <span className="hidden rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-500 sm:inline-block">
-                猫咪调解室
+              <span className="hidden rounded-full bg-tang-100 px-2.5 py-0.5 text-xs font-bold text-tang-600 sm:inline-block">
+                判判猫
               </span>
             </Link>
+
+            <div className="flex items-center gap-2">
+              <div className="hidden md:block">
+                <Suspense
+                  fallback={
+                    <nav className="flex items-center gap-1">
+                      <span className="rounded-full px-4 py-2 text-sm font-bold text-cocoa-500">
+                        首页
+                      </span>
+                      <span className="rounded-full px-4 py-2 text-sm font-bold text-cocoa-500">
+                        创建房间
+                      </span>
+                    </nav>
+                  }
+                >
+                  <SiteNav />
+                </Suspense>
+              </div>
+              <Link
+                href="/create"
+                className={cn(
+                  buttonVariants({ size: "sm" }),
+                  "hidden h-9 rounded-full bg-tang-400 px-4 text-sm font-bold text-white shadow-soft hover:bg-tang-500 md:inline-flex",
+                )}
+              >
+                开始调解 🐾
+              </Link>
+            </div>
           </div>
         </header>
+
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
-          用理解和幽默，化解每一场小风波 · 当前为演示版本，页面使用模拟数据
+
+        <footer className="mt-16 border-t border-tang-100">
+          <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-cocoa-400 sm:flex-row sm:px-6">
+            <span className="font-bold text-cocoa-500">CatJudge · 判判猫</span>
+            <div className="flex flex-col items-center gap-1 text-center sm:items-end sm:text-right">
+              <span>© 2026 CatJudge · 不急着判断谁对谁错，先让彼此听懂对方 🐾</span>
+              <span>AI 分析仅辅助沟通，不替代专业心理、法律或危机干预服务</span>
+            </div>
+          </div>
         </footer>
       </body>
     </html>
