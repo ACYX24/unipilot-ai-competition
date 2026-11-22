@@ -83,7 +83,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="mt-16 border-t border-tang-100">
           <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-cocoa-400 sm:flex-row sm:px-6">
             <span className="font-bold text-cocoa-500">CatJudge · 判判猫</span>
-            <span>© 2026 CatJudge · 不急着判断谁对谁错，先让彼此听懂对方 🐾</span>
+            <div className="flex flex-col items-center gap-1 text-center sm:items-end sm:text-right">
+              <span>© 2026 CatJudge · 不急着判断谁对谁错，先让彼此听懂对方 🐾</span>
+              <span>AI 分析仅辅助沟通，不替代专业心理、法律或危机干预服务</span>
+            </div>
           </div>
         </footer>
       </body>

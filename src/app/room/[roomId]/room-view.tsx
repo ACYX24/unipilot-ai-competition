@@ -1,8 +1,16 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { Check, CheckCircle2, Copy, Loader2, Scale } from "lucide-react"
+import {
+  Check,
+  CheckCircle2,
+  Copy,
+  FileHeart,
+  Loader2,
+  RotateCw,
+  Scale,
+} from "lucide-react"
 import { CatAvatar } from "@/components/cat-mascot"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -16,7 +24,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { loadCredentials } from "@/lib/credentials-storage"
-import { fetchRoomState, submitStatement } from "@/lib/room-api"
+import { fetchRoomState, generateRoomAnalysis, submitStatement } from "@/lib/room-api"
 import type {
   ParticipantCredentials,
   RoomStateResponse,
@@ -26,12 +34,36 @@ import type {
 import { cn } from "@/lib/utils"
 
 const POLL_INTERVAL = 3000
+const ANALYSIS_RETRY_INTERVAL = 8000
 
 const statusLabels: Record<RoomStatus, string> = {
   waiting: "等待对方加入",
   collecting: "观点收集中",
-  analyzing: "双方已提交",
+  analyzing: "AI 分析中",
   completed: "调解已完成",
+}
+
+const analysisErrorMessages: Record<string, string> = {
+  llm_not_configured: "服务端尚未配置 AI 模型，请联系管理员",
+  llm_timeout: "AI 响应超时，请重试",
+  llm_rate_limited: "AI 服务繁忙，请稍后重试",
+  llm_auth_failed: "AI 服务鉴权失败，请联系管理员",
+  llm_upstream_error: "AI 服务暂时不可用，请稍后重试",
+  llm_invalid_output: "AI 报告格式异常，请重试",
+  report_persist_failed: "报告保存失败，请重试",
+  analysis_migration_missing: "数据库迁移未执行，请联系管理员",
+  rate_limited: "操作过于频繁，请稍后再试",
+}
+
+const nonRetryableCodes = new Set([
+  "llm_not_configured",
+  "llm_auth_failed",
+  "analysis_migration_missing",
+])
+
+function formatAnalysisError(code: string | null | undefined) {
+  if (!code) return ""
+  return analysisErrorMessages[code] ?? "分析失败，请重试"
 }
 
 const sideStyles: Record<Side, { card: string; badge: string; bubble: string }> = {
@@ -56,6 +88,9 @@ export function RoomView({ roomId }: { roomId: string }) {
   const [draft, setDraft] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [analysisError, setAnalysisError] = useState("")
+  const [analysisPending, setAnalysisPending] = useState(false)
+  const lastAnalysisAttemptRef = useRef(0)
 
   useEffect(() => {
     // localStorage 仅在浏览器可用，放到异步回调中读取以避免 SSR 不一致
@@ -86,6 +121,36 @@ export function RoomView({ roomId }: { roomId: string }) {
       clearInterval(timer)
     }
   }, [credentials, refresh])
+
+  const triggerAnalysis = useCallback(async () => {
+    if (!credentials) return
+    lastAnalysisAttemptRef.current = Date.now()
+    setAnalysisPending(true)
+    setAnalysisError("")
+    try {
+      await generateRoomAnalysis(roomId, credentials.accessToken)
+      await refresh()
+    } catch (err) {
+      setAnalysisError(err instanceof Error ? err.message : "分析失败，请稍后重试")
+    } finally {
+      setAnalysisPending(false)
+    }
+  }, [credentials, roomId, refresh])
+
+  useEffect(() => {
+    if (!credentials || !state) return
+    if (state.room.status !== "analyzing") return
+    if (state.analysis.leaseActive || state.analysis.errorCode) return
+    if (analysisError || analysisPending) return
+    if (Date.now() - lastAnalysisAttemptRef.current < ANALYSIS_RETRY_INTERVAL) return
+    void triggerAnalysis()
+  }, [analysisError, analysisPending, credentials, state, triggerAnalysis])
+
+  async function retryAnalysis() {
+    lastAnalysisAttemptRef.current = 0
+    setAnalysisError("")
+    await triggerAnalysis()
+  }
 
   async function handleSubmit() {
     if (!credentials || !draft.trim() || submitting) return
@@ -177,6 +242,10 @@ export function RoomView({ roomId }: { roomId: string }) {
   const mySide = state.me.side
   const otherSide: Side = mySide === "A" ? "B" : "A"
   const otherParticipant = state.participants.find((p) => p.side === otherSide)
+  const analysisErrorText =
+    analysisError || formatAnalysisError(state.analysis.errorCode)
+  const canRetryAnalysis =
+    !state.analysis.errorCode || !nonRetryableCodes.has(state.analysis.errorCode)
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
@@ -312,10 +381,52 @@ export function RoomView({ roomId }: { roomId: string }) {
               等待双方都提交观点后，猫咪法官就会开始分析。
             </p>
           )}
-          {state.room.status === "analyzing" && (
-            <p className="text-sm text-violet-600">
-              双方观点已提交！AI 分析功能将在下一阶段接入，届时会自动生成调解报告。
-            </p>
+          {state.room.status === "analyzing" &&
+            (analysisErrorText ? (
+              <div className="flex flex-col items-center gap-3">
+                <p role="alert" className="text-sm text-destructive">
+                  {analysisErrorText}
+                </p>
+                {canRetryAnalysis && (
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    disabled={analysisPending}
+                    onClick={retryAnalysis}
+                  >
+                    {analysisPending ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <RotateCw />
+                    )}
+                    {analysisPending ? "重试中…" : "重试分析"}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-violet-600">
+                <Loader2 className="size-4 animate-spin" />
+                {state.analysis.leaseActive || analysisPending
+                  ? "猫咪法官正在阅读双方陈述、生成报告…通常需要 10–30 秒"
+                  : "双方观点已齐全，正在准备分析…"}
+              </div>
+            ))}
+          {state.room.status === "completed" && (
+            <>
+              <p className="text-sm text-violet-600">
+                调解报告已生成，两位参与者看到的是同一份报告。
+              </p>
+              <Link
+                href={`/report/${roomId}`}
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "rounded-full px-6",
+                )}
+              >
+                <FileHeart className="size-4" />
+                查看调解报告
+              </Link>
+            </>
           )}
           <p className="text-xs text-muted-foreground">
             页面每 3 秒自动同步房间状态，刷新也不会丢失进度。

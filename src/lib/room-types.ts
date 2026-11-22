@@ -1,3 +1,5 @@
+import type { MediationReport } from "./mediation-report-schema"
+
 export type RoomStatus = "waiting" | "collecting" | "analyzing" | "completed"
 
 export type Side = "A" | "B"
@@ -29,6 +31,13 @@ export interface StatementView {
   submittedAt: string
 }
 
+export interface RoomAnalysisState {
+  errorCode: string | null
+  leaseActive: boolean
+  canRetry: boolean
+  reportReady: boolean
+}
+
 export interface RoomStateResponse {
   room: {
     id: string
@@ -43,6 +52,20 @@ export interface RoomStateResponse {
   myStatement: StatementView | null
   otherStatement: StatementView | null
   otherSubmitted: boolean
+  analysis: RoomAnalysisState
+}
+
+export interface AnalysisResponse {
+  status: "analyzing" | "completed"
+  reportId?: string
+}
+
+export interface RoomReportResponse {
+  status: "completed"
+  inviteCode: string
+  model: string
+  generatedAt: string
+  report: MediationReport
 }
 
 export interface CreateRoomResponse extends ParticipantCredentials {
