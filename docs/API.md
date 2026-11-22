@@ -105,6 +105,8 @@ x-participant-token: <创建/加入房间时返回的 accessToken>
 
 `GET /api/rooms/[roomId]/state` 在原有字段上新增：
 
+隐私约定：该接口**始终不返回对方陈述原文**，响应中不存在 `otherStatement` 字段；`otherSubmitted` 仅表示对方是否已提交，`myStatement` 只返回当前参与者自己的原文。
+
 ```ts
 analysis: {
   errorCode: string | null   // 最近一次失败的错误码
