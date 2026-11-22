@@ -21,9 +21,9 @@ const steps = [
   },
   {
     emoji: "💌",
-    title: "AI 私人反馈 · 各自可见",
+    title: "AI 调解报告 · 双方共享",
     description:
-      "判判猫分别给两个人写一封私人信：做得好的地方、沟通误区、推荐的表达方式，还有一句温柔鼓励。",
+      "判判猫分别整理双方的事实、感受与需求，生成观点总结、沟通误区与改善建议，两位参与者看到同一份报告。",
   },
   {
     emoji: "🔄",
@@ -43,7 +43,7 @@ const features = [
   {
     emoji: "🙈",
     title: "隐私优先",
-    description: "双方永远看不到对方的原始陈述，只接收经 AI 整理、可公开的观点转述。",
+    description: "双方永远看不到对方的原始陈述，只接收 AI 整理后的共享调解报告。",
   },
   {
     emoji: "⚖️",
@@ -74,7 +74,7 @@ export default function Home() {
 
         <p className="mt-5 max-w-xl text-base leading-7 text-cocoa-500 sm:text-lg">
           CatJudge 让双方分别陈述、互相看不见原文，由温柔的 AI
-          判判猫提供私人反馈，再把彼此的观点与真实需求转述给对方——把争吵，翻译成一次听懂。
+          判判猫整理双方的事实、感受与需求，生成一份双方共享的调解报告——把争吵，翻译成一次听懂。
         </p>
 
         <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">

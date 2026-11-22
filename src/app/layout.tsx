@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CatJudge · 判判猫｜AI 双人关系沟通与冲突调解",
   description:
-    "双方各自独立陈述、互相看不见原文，由 AI 判判猫给出私人反馈，再把彼此的观点与真实需求转述给对方——把争吵翻译成一次听懂。",
+    "双方各自独立陈述、互相看不见原文，由 AI 判判猫分别整理事实、感受与需求，生成一份双方共享的调解报告——把争吵翻译成一次听懂。",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

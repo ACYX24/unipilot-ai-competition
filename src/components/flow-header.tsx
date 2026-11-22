@@ -11,7 +11,7 @@ export type FlowStage =
 const stages: { key: FlowStage; label: string }[] = [
   { key: "statement", label: "独立陈述" },
   { key: "waiting", label: "等待提交" },
-  { key: "feedback", label: "私人反馈" },
+  { key: "feedback", label: "调解报告" },
   { key: "analysis", label: "观点转述" },
   { key: "interaction", label: "互动环节" },
   { key: "agreement", label: "改善约定" },
