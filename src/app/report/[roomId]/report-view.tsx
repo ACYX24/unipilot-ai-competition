@@ -49,7 +49,7 @@ function SectionTitle({
   className?: string
 }) {
   return (
-    <h2 className="flex items-center gap-2 text-lg font-bold sm:text-xl">
+    <h2 className="display-heading flex items-center gap-2.5 text-xl sm:text-2xl">
       <span
         className={cn(
           "flex size-8 items-center justify-center rounded-xl",
@@ -196,26 +196,23 @@ export function ReportView({ roomId }: { roomId: string }) {
   const report: MediationReport = reportData.report
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10">
-      <Card className="overflow-hidden rounded-3xl border-violet-100 bg-gradient-to-br from-rose-50 via-white to-violet-50 shadow-xs">
-        <CardContent className="flex flex-col items-center gap-5 py-8 text-center sm:flex-row sm:text-left">
-          <div className="w-28 shrink-0 sm:w-32">
+    <div className="site-container flex max-w-4xl flex-col gap-9 py-8 sm:py-10">
+      <Card className="overflow-hidden rounded-3xl border-tang-200 bg-tang-50 shadow-none">
+        <CardContent className="grid items-start gap-5 py-5 sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:gap-7 sm:py-8">
+          <div className="w-20 sm:w-full">
             <CatMascot variant="judge" />
           </div>
-          <div className="flex flex-col gap-3">
-            <Badge
-              variant="secondary"
-              className="mx-auto w-fit rounded-full sm:mx-0"
-            >
+          <div className="flex min-w-0 flex-col gap-2.5">
+            <p className="text-xs leading-6 text-cocoa-500">
               房间 {reportData.inviteCode} ·{" "}
               {formatGeneratedAt(reportData.generatedAt)}
-            </Badge>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              猫咪法官的调解报告
+            </p>
+            <h1 className="display-heading text-3xl leading-tight sm:text-4xl">
+              判判猫的调解报告
             </h1>
-            <p className="text-sm text-muted-foreground">{report.topic}</p>
-            <blockquote className="rounded-2xl bg-white/70 p-4 text-sm leading-7 text-foreground/80">
-              「{report.overallComment}」
+            <p className="break-words text-sm text-cocoa-500">{report.topic}</p>
+            <blockquote className="mt-1 border-l-2 border-tang-300 pl-4 text-sm leading-7 text-cocoa-700">
+              {report.overallComment}
             </blockquote>
           </div>
         </CardContent>
@@ -224,7 +221,7 @@ export function ReportView({ roomId }: { roomId: string }) {
       <section className="flex flex-col gap-4">
         <SectionTitle
           icon={MessageSquareQuote}
-          className="bg-rose-100 text-rose-500"
+          className="bg-tang-100 text-tang-700"
         >
           双方观点总结
         </SectionTitle>
@@ -235,8 +232,8 @@ export function ReportView({ roomId }: { roomId: string }) {
               className={cn(
                 "rounded-3xl shadow-xs",
                 summary.side === "A"
-                  ? "border-rose-100 bg-rose-50/50"
-                  : "border-sky-100 bg-sky-50/50",
+                  ? "border-cream-300 bg-cream-50"
+                  : "border-sky-100 bg-sky-50/45",
               )}
             >
               <CardHeader className="flex-row items-center gap-3">
@@ -274,8 +271,8 @@ export function ReportView({ roomId }: { roomId: string }) {
                       className={cn(
                         "rounded-full",
                         emotion.side === "A"
-                          ? "bg-rose-100 text-rose-500"
-                          : "bg-sky-100 text-sky-600",
+                          ? "bg-cream-200 text-cocoa-700"
+                          : "bg-sky-100 text-sky-800",
                       )}
                     >
                       {tag}
@@ -328,15 +325,15 @@ export function ReportView({ roomId }: { roomId: string }) {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionTitle icon={Heart} className="bg-rose-100 text-rose-500">
+        <SectionTitle icon={Heart} className="bg-tang-100 text-tang-700">
           共同需求
         </SectionTitle>
-        <Card className="rounded-3xl border-rose-100 bg-rose-50/60 shadow-xs">
+        <Card className="rounded-3xl border-tang-100 bg-tang-50 shadow-xs">
           <CardContent className="flex flex-wrap gap-3 py-5">
             {report.commonNeeds.map((need) => (
               <span
                 key={need}
-                className="rounded-full bg-white px-4 py-2 text-sm font-medium text-rose-500 shadow-xs"
+                className="rounded-full bg-white px-4 py-2 text-sm font-medium text-tang-700"
               >
                 {need}
               </span>
@@ -346,14 +343,14 @@ export function ReportView({ roomId }: { roomId: string }) {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionTitle icon={Lightbulb} className="bg-violet-100 text-violet-600">
+        <SectionTitle icon={Lightbulb} className="bg-tang-100 text-tang-700">
           改善建议
         </SectionTitle>
         <div className="flex flex-col gap-3">
           {report.suggestions.map((suggestion, index) => (
             <Card key={suggestion.title} className="rounded-3xl shadow-xs">
               <CardContent className="flex gap-3 py-4">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-600">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-tang-100 text-sm font-bold text-tang-700">
                   {index + 1}
                 </span>
                 <div>

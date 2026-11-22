@@ -21,35 +21,30 @@ import type { ParticipantCredentials, RoomStateResponse } from "@/lib/room-types
 const QUESTIONS = [
   {
     id: "events",
-    emoji: "📖",
     title: "事情经过",
     hint: "尽量只描述你看到的「事实」，先不评价对方。",
     placeholder: "那天发生了什么？按时间顺序说说你的版本……",
   },
   {
     id: "feelings",
-    emoji: "💭",
     title: "你当时的感受",
     hint: "用「我感到……」开头，会比「你总是……」更容易被听进去。",
     placeholder: "那一刻你的心情是什么样的？",
   },
   {
     id: "concern",
-    emoji: "🎯",
     title: "你最在意的问题",
     hint: "如果只能挑一件事说清楚，你想挑哪件？",
     placeholder: "这件事里，真正戳到你的是什么？",
   },
   {
     id: "understand",
-    emoji: "👂",
     title: "你希望对方理解的内容",
     hint: "换成一句话，你最想让 TA 明白什么？",
     placeholder: "我希望 TA 知道……",
   },
   {
     id: "change",
-    emoji: "🌱",
     title: "你希望对方做出的改变",
     hint: "具体、小步、可执行的改变，比「你必须变一个人」更有效。",
     placeholder: "下次遇到类似情况，你希望 TA 怎么做？",
@@ -212,7 +207,7 @@ function StatementContent() {
 
       <Card className="rounded-3xl border-tang-100 shadow-soft">
         <CardHeader>
-          <CardTitle className="text-lg text-cocoa-700">写下你的版本</CardTitle>
+          <CardTitle className="display-heading text-xl">写下你的版本</CardTitle>
           <CardDescription>
             TA 看不到你的原文：这些内容只有你和判判猫能看到，提交后才会进入下一阶段。
           </CardDescription>
@@ -220,18 +215,18 @@ function StatementContent() {
         <CardContent className="flex flex-col gap-6">
           {QUESTIONS.map((question) => (
             <div key={question.id} className="flex flex-col gap-2">
-              <Label htmlFor={question.id} className="text-cocoa-700">
-                <span className="mr-1">{question.emoji}</span>
+              <Label htmlFor={question.id} className="font-bold text-cocoa-700">
                 {question.title}
               </Label>
-              <p className="text-xs leading-5 text-cocoa-400">{question.hint}</p>
+              <p id={`${question.id}-hint`} className="text-sm leading-6 text-cocoa-500">{question.hint}</p>
               <Textarea
                 id={question.id}
                 value={draft[question.id]}
                 onChange={(event) => updateDraft(question.id, event.target.value)}
                 placeholder={question.placeholder}
                 maxLength={2000}
-                className="min-h-24 rounded-2xl border-tang-100 bg-white"
+                aria-describedby={`${question.id}-hint`}
+                className="room-field-control"
               />
             </div>
           ))}
@@ -264,7 +259,7 @@ function StatementContent() {
               size="lg"
               disabled={!canSubmit}
               onClick={handleSubmit}
-              className="h-11 rounded-full bg-tang-400 px-7 font-bold text-white shadow-soft hover:bg-tang-500"
+              className="action-primary shrink-0"
             >
               {submitting ? <Loader2 className="animate-spin" /> : null}
               {submitting ? "提交中…" : "提交我的陈述"}
