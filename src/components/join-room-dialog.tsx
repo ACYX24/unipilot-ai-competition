@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { SheepWithLetter } from "@/components/cat-mascot"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -56,21 +57,22 @@ export function JoinRoomDialog() {
           <Button
             variant="outline"
             size="lg"
-            className="h-12 w-full rounded-full border-2 border-tang-200 bg-white px-7 text-base font-bold text-tang-600 hover:border-tang-400 hover:text-tang-500 sm:w-auto"
+            className="action-secondary"
           />
         }
       >
-        加入调解房间
+        加入房间
       </DialogTrigger>
-      <DialogContent className="rounded-3xl border-tang-100 sm:max-w-sm">
+      <DialogContent className="join-panel rounded-2xl p-6 sm:max-w-md sm:p-7">
         <DialogHeader>
-          <DialogTitle className="text-cocoa-700">加入调解房间</DialogTitle>
+          <SheepWithLetter className="size-16" />
+          <DialogTitle className="display-heading text-2xl">加入调解房间</DialogTitle>
           <DialogDescription>
-            输入对方分享给你的房间邀请码，你将成为用户 B。
+            输入对方发给你的邀请码，就能进入同一个房间。
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
+        <form onSubmit={handleSubmit} className="room-form">
+          <div className="room-field">
             <Label htmlFor="invite-code">房间邀请码</Label>
             <Input
               id="invite-code"
@@ -79,10 +81,13 @@ export function JoinRoomDialog() {
               placeholder="8 位字母与数字"
               autoComplete="off"
               maxLength={12}
-              className="h-11 rounded-xl uppercase"
+              autoCapitalize="characters"
+              spellCheck={false}
+              required
+              className="room-field-control uppercase"
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="room-field">
             <Label htmlFor="join-display-name">你的昵称</Label>
             <Input
               id="join-display-name"
@@ -90,7 +95,8 @@ export function JoinRoomDialog() {
               onChange={(event) => setDisplayName(event.target.value)}
               placeholder="例如：奶盖"
               maxLength={30}
-              className="h-11 rounded-xl"
+              required
+              className="room-field-control"
             />
           </div>
           {error && (
@@ -102,9 +108,9 @@ export function JoinRoomDialog() {
             type="submit"
             size="lg"
             disabled={!canSubmit}
-            className="h-11 rounded-full bg-tang-400 font-bold text-white shadow-soft hover:bg-tang-500"
+            className="action-primary"
           >
-            {submitting && <Loader2 className="animate-spin" />}
+            {submitting && <Loader2 className="motion-safe:animate-spin" aria-hidden="true" />}
             {submitting ? "加入中…" : "进入房间"}
           </Button>
         </form>

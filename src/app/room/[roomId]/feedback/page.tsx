@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Loader2, RotateCw, ShieldAlert } from "lucide-react"
+import { CatMascot } from "@/components/cat-mascot"
 import { FlowHeader } from "@/components/flow-header"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -198,9 +199,7 @@ function FeedbackContent() {
 
       <Card className="rounded-3xl border-tang-100 text-center shadow-soft">
         <CardHeader>
-          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-tang-100 text-2xl">
-            {completed ? "💌" : analysisErrorText ? "🐾" : "🔍"}
-          </div>
+          <CatMascot variant="judge" className="brand-status" />
           <CardTitle className="mt-2 text-lg text-cocoa-700">
             {completed
               ? "调解报告已生成"

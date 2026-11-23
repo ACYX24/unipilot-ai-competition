@@ -1,95 +1,44 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
-import { CatAvatar } from "@/components/cat-mascot";
-import { SiteNav } from "@/components/site-nav";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import type { Metadata } from "next"
+import Link from "next/link"
+import { CatAvatar } from "@/components/cat-mascot"
+import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "CatJudge · 判判猫｜AI 双人关系沟通与冲突调解",
-  description:
-    "双方各自独立陈述、互相看不见原文，由 AI 判判猫分别整理事实、感受与需求，生成一份双方共享的调解报告——把争吵翻译成一次听懂。",
-};
+  title: "CatJudge · 判判猫",
+  description: "一个让两个人分别陈述、共同看调解报告的小房间。双方原始陈述互不可见。",
+  other: { "page-type": "software", "site-kind": "software" },
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="zh-CN"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="zh-CN" data-type="software" className="h-full antialiased">
       <body className="flex min-h-full flex-col">
-        <header className="sticky top-0 z-50 border-b border-tang-100 bg-cream-100/85 backdrop-blur-md">
-          <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
-            <Link
-              href="/"
-              className="flex shrink-0 items-center gap-2.5 transition-transform hover:scale-105"
-            >
-              <span className="w-9 shrink-0">
-                <CatAvatar />
-              </span>
-              <span className="text-lg font-extrabold tracking-tight text-cocoa-700">
-                CatJudge
-              </span>
-              <span className="hidden rounded-full bg-tang-100 px-2.5 py-0.5 text-xs font-bold text-tang-600 sm:inline-block">
-                判判猫
-              </span>
+        <a href="#main-content" className="skip-content">跳到正文</a>
+        <header className="site-header">
+          <div className="site-container site-header-inner">
+            <Link href="/" className="site-brand" aria-label="CatJudge 判判猫首页">
+              <CatAvatar className="site-mark" />
+              <span>CatJudge</span>
+              <span className="site-brand-cn">判判猫</span>
             </Link>
-
-            <div className="flex items-center gap-2">
-              <div className="hidden md:block">
-                <Suspense
-                  fallback={
-                    <nav className="flex items-center gap-1">
-                      <span className="rounded-full px-4 py-2 text-sm font-bold text-cocoa-500">
-                        首页
-                      </span>
-                      <span className="rounded-full px-4 py-2 text-sm font-bold text-cocoa-500">
-                        创建房间
-                      </span>
-                    </nav>
-                  }
-                >
-                  <SiteNav />
-                </Suspense>
-              </div>
-              <Link
-                href="/create"
-                className={cn(
-                  buttonVariants({ size: "sm" }),
-                  "hidden h-9 rounded-full bg-tang-400 px-4 text-sm font-bold text-white shadow-soft hover:bg-tang-500 md:inline-flex",
-                )}
-              >
-                开始调解 🐾
+            <nav className="site-navigation" aria-label="主导航">
+              <Link href="/#how-it-works" className="site-nav-process">调解流程</Link>
+              <Link href="/create" className="site-nav-create">
+                创建房间
               </Link>
-            </div>
+            </nav>
           </div>
         </header>
 
-        <main className="flex-1">{children}</main>
+        <main id="main-content" className="min-w-0 flex-1">{children}</main>
 
-        <footer className="mt-16 border-t border-tang-100">
-          <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-cocoa-400 sm:flex-row sm:px-6">
-            <span className="font-bold text-cocoa-500">CatJudge · 判判猫</span>
-            <div className="flex flex-col items-center gap-1 text-center sm:items-end sm:text-right">
-              <span>© 2026 CatJudge · 不急着判断谁对谁错，先让彼此听懂对方 🐾</span>
-              <span>AI 分析仅辅助沟通，不替代专业心理、法律或危机干预服务</span>
-            </div>
+        <footer className="site-footer">
+          <div className="site-container site-footer-inner">
+            <span>CatJudge 判判猫</span>
+            <p>AI 分析仅辅助沟通，不替代专业心理、法律或危机干预服务</p>
           </div>
         </footer>
       </body>
     </html>
-  );
+  )
 }

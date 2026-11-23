@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Check, Copy, Loader2 } from "lucide-react"
+import { SheepWithLetter } from "@/components/cat-mascot"
 import { FlowHeader } from "@/components/flow-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -134,9 +135,7 @@ function WaitingContent() {
 
       <Card className="rounded-3xl border-tang-100 text-center shadow-soft">
         <CardHeader>
-          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-tang-100 text-2xl">
-            🐾
-          </div>
+          <SheepWithLetter className="brand-status" />
           <CardTitle className="mt-2 text-lg text-cocoa-700">
             {state!.otherSubmitted ? "双方都已提交" : "陈述已提交，等对方落笔"}
           </CardTitle>
