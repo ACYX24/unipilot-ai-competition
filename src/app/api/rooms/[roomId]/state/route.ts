@@ -4,6 +4,7 @@ import {
   readAccessToken,
 } from "@/lib/server/room-auth"
 import { createSupabaseAdmin } from "@/lib/server/supabase-admin"
+import { isMissingAnalysisColumnsError } from "@/lib/server/supabase-errors"
 import type { RoomStateResponse } from "@/lib/room-types"
 
 export async function GET(
@@ -33,6 +34,16 @@ export async function GET(
     .maybeSingle()
 
   if (roomError) {
+    if (isMissingAnalysisColumnsError(roomError)) {
+      return Response.json(
+        {
+          error: "数据库尚未执行分析迁移，请管理员执行迁移",
+          code: "analysis_migration_missing",
+          retryable: false,
+        },
+        { status: 503 },
+      )
+    }
     return Response.json({ error: "查询房间失败" }, { status: 500 })
   }
   if (!room || new Date(room.expires_at).getTime() < Date.now()) {

@@ -17,7 +17,7 @@ test("formatAnalysisError: 未配置与迁移缺失提示联系管理员", () =>
   )
   assert.equal(
     formatAnalysisError("analysis_migration_missing"),
-    "数据库迁移未执行，请联系管理员",
+    "数据库尚未执行分析迁移，请管理员执行迁移",
   )
 })
 

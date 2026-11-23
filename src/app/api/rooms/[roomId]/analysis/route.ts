@@ -96,13 +96,6 @@ export async function POST(
     )
   }
 
-  if (room.status !== "analyzing") {
-    return noStore(
-      { error: "双方都提交观点后才能开始分析", code: "analysis_not_ready" },
-      409,
-    )
-  }
-
   const names: Partial<Record<Side, string>> = {}
   for (const participant of participantsResult.data ?? []) {
     names[participant.side as Side] = participant.display_name
@@ -140,9 +133,24 @@ export async function POST(
     return noStore({ status: "completed", reportId: reportResult.data.id })
   }
 
-  const claimed = await claimRoomAnalysis(roomId)
-  if (!claimed) {
-    return noStore({ status: "analyzing" }, 202)
+  if (room.status !== "analyzing") {
+    // 旧房间可能已有两份陈述但仍停留在 collecting/waiting，分析请求时一并修复
+    if (room.status === "waiting" || room.status === "collecting") {
+      const { error: repairError } = await supabase
+        .from("rooms")
+        .update({ status: "analyzing" })
+        .eq("id", roomId)
+        .in("status", ["waiting", "collecting"])
+
+      if (repairError) {
+        return noStore({ error: "更新房间状态失败，请稍后重试" }, 500)
+      }
+    } else {
+      return noStore(
+        { error: "双方都提交观点后才能开始分析", code: "analysis_not_ready" },
+        409,
+      )
+    }
   }
 
   const source: ReportSource = {
@@ -153,12 +161,22 @@ export async function POST(
     statements: { A: statementA, B: statementB },
   }
 
+  let claimed = false
+
   try {
+    claimed = await claimRoomAnalysis(roomId)
+    if (!claimed) {
+      return noStore({ status: "analyzing" }, 202)
+    }
+
     const saved = await generateAndSaveReport(source)
     return noStore({ status: "completed", reportId: saved.reportId })
   } catch (error) {
     const analysisError = toAnalysisError(error)
-    await releaseRoomAnalysis(roomId, analysisError.code)
+    // 只有成功领取租约的请求才允许释放自己的租约
+    if (claimed) {
+      await releaseRoomAnalysis(roomId, analysisError.code)
+    }
     return noStore(
       {
         error: analysisError.message,

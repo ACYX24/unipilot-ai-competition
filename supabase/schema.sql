@@ -119,6 +119,82 @@ revoke execute on function release_room_analysis(uuid, text) from public, anon, 
 grant execute on function claim_room_analysis(uuid, integer) to service_role;
 grant execute on function release_room_analysis(uuid, text) to service_role;
 
+-- 原子提交陈述：插入陈述并在双方齐全时推进到 analyzing
+create or replace function submit_room_statement(
+  p_room_id uuid,
+  p_side text,
+  p_content text
+)
+returns table (
+  status text,
+  inserted boolean,
+  statement_id uuid
+)
+language plpgsql
+set search_path = public, pg_temp
+as $$
+declare
+  v_status text;
+  v_statement_id uuid;
+  v_inserted boolean := false;
+  v_count integer;
+begin
+  if p_side is null or p_side not in ('A', 'B') then
+    raise exception 'invalid_side' using errcode = 'P0001';
+  end if;
+
+  if p_content is null or btrim(p_content) = '' then
+    raise exception 'empty_content' using errcode = 'P0001';
+  end if;
+
+  select r.status
+    into v_status
+    from rooms r
+   where r.id = p_room_id
+     for update;
+
+  if v_status is null then
+    raise exception 'room_not_found' using errcode = 'P0001';
+  end if;
+
+  select s.id
+    into v_statement_id
+    from statements s
+   where s.room_id = p_room_id
+     and s.side = p_side;
+
+  if v_statement_id is null then
+    if v_status not in ('waiting', 'collecting') then
+      raise exception 'room_not_accepting_statements' using errcode = 'P0001';
+    end if;
+
+    insert into statements (room_id, side, content)
+    values (p_room_id, p_side, p_content)
+    returning id into v_statement_id;
+
+    v_inserted := true;
+  end if;
+
+  select count(*)
+    into v_count
+    from statements s
+   where s.room_id = p_room_id;
+
+  if v_count >= 2 and v_status in ('waiting', 'collecting') then
+    update rooms
+       set status = 'analyzing'
+     where id = p_room_id;
+
+    v_status := 'analyzing';
+  end if;
+
+  return query select v_status, v_inserted, v_statement_id;
+end;
+$$;
+
+revoke execute on function submit_room_statement(uuid, text, text) from public, anon, authenticated;
+grant execute on function submit_room_statement(uuid, text, text) to service_role;
+
 -- 访问控制：所有表开启 RLS 且不添加任何 anon/authenticated 策略，
 -- 浏览器无法直连数据库读写；所有读写经由服务端 Route Handlers
 -- （service role key，仅在服务端环境变量中存在），并在代码中校验参与者凭证。

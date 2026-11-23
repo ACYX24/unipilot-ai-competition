@@ -10,6 +10,7 @@ export const MEDIATION_SYSTEM_PROMPT = `你是「Cat Mediator 猫咪调解室」
 4. 建议必须具体、双方都能执行，避免羞辱、操控、威胁或强迫和解。
 5. 趣味任务要轻松、安全、和这次矛盾相关，不涉及金钱、饮酒或危险行为。
 6. 使用简体中文，语气温和、清楚，不使用 Markdown。
+7. 隐私：绝对禁止逐字复述或引用任一方私人陈述中的连续片段（尤其是 12 字以上的原文），也不要把原文中的可识别细节组合直接搬到报告里。只能用自己的话做抽象概括，让双方都无法从报告中还原出对方的原文。
 
 只输出一个 JSON 对象，不要输出 Markdown 围栏、解释或任何额外文字。JSON 必须严格符合以下结构：
 {
@@ -55,3 +56,7 @@ export function buildMediationUserPrompt(input: MediationPromptInput) {
 
 ${JSON.stringify(payload, null, 2)}`
 }
+
+export const PRIVACY_RETRY_INSTRUCTION = `上一次报告逐字复述了用户陈述中的连续片段，这是不允许的。
+请完全重新生成一份报告：只能做抽象概括，不得出现任一方陈述中连续 12 个字以上的原文片段，也不得把原文中的具体细节直接拼接成可识别句子。
+保持中立、温和，并严格遵守系统要求的结构与数量限制，只输出 JSON。`

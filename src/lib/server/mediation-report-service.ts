@@ -11,8 +11,10 @@ import { getLlmConfig } from "./env"
 import { requestJsonCompletion } from "./llm-client"
 import {
   MEDIATION_SYSTEM_PROMPT,
+  PRIVACY_RETRY_INSTRUCTION,
   buildMediationUserPrompt,
 } from "./prompts/mediation-report"
+import { findStatementLeak } from "./report-privacy"
 import { createSupabaseAdmin } from "./supabase-admin"
 
 const MAX_REPORT_TOKENS = 2600
@@ -36,13 +38,19 @@ function describeValidationError(error: unknown) {
   return "输出不是合法 JSON 或结构不符合要求"
 }
 
-async function generateDraft(source: ReportSource): Promise<AiReportDraft> {
-  const userPrompt = buildMediationUserPrompt({
+async function generateDraft(
+  source: ReportSource,
+  extraInstruction?: string,
+): Promise<AiReportDraft> {
+  const basePrompt = buildMediationUserPrompt({
     topic: source.topic,
     disputeType: source.disputeType,
     participants: source.names,
     statements: source.statements,
   })
+  const userPrompt = extraInstruction
+    ? `${basePrompt}\n\n${extraInstruction}`
+    : basePrompt
 
   const first = await requestJsonCompletion({
     system: MEDIATION_SYSTEM_PROMPT,
@@ -139,12 +147,31 @@ async function persistReport(
 
 export async function generateAndSaveReport(source: ReportSource) {
   const config = getLlmConfig()
-  const draft = await generateDraft(source)
-  const report = buildMediationReport(draft, {
+  let draft = await generateDraft(source)
+  let report = buildMediationReport(draft, {
     topic: source.topic,
     generatedAt: new Date().toISOString(),
     participantNames: source.names,
   })
+
+  if (findStatementLeak(report, source.statements)) {
+    console.warn("[analysis] report echoed a private statement, regenerating once")
+    draft = await generateDraft(source, PRIVACY_RETRY_INSTRUCTION)
+    report = buildMediationReport(draft, {
+      topic: source.topic,
+      generatedAt: new Date().toISOString(),
+      participantNames: source.names,
+    })
+
+    if (findStatementLeak(report, source.statements)) {
+      throw new AnalysisError(
+        "llm_privacy_violation",
+        "AI 报告包含可能泄露原文的内容，请重试",
+        502,
+        true,
+      )
+    }
+  }
 
   const saved = await persistReport(source, report, config.model)
   return { ...saved, report }

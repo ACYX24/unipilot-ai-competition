@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test src/lib/mediation-report-schema.test.mts src/lib/statement-content.test.mts src/lib/room-phase.test.mts src/lib/analysis-status.test.mts"
+"test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test src/lib/mediation-report-schema.test.mts src/lib/statement-content.test.mts src/lib/room-phase.test.mts src/lib/analysis-status.test.mts src/lib/server/supabase-errors.test.mts src/lib/server/report-privacy.test.mts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

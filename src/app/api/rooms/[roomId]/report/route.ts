@@ -1,4 +1,8 @@
-import { mediationReportSchema } from "@/lib/mediation-report-schema"
+import {
+  mediationReportSchema,
+  type ReportSide,
+} from "@/lib/mediation-report-schema"
+import { findStatementLeak } from "@/lib/server/report-privacy"
 import {
   authenticateParticipant,
   isValidRoomId,
@@ -60,6 +64,33 @@ export async function GET(
   if (!parsed.success) {
     console.error("[report] stored report failed validation")
     return Response.json({ error: "报告数据异常，请联系管理员" }, { status: 500 })
+  }
+
+  // 历史报告同样拦截：读取时再次比对双方陈述，避免旧数据泄露原文
+  const { data: statements, error: statementsError } = await supabase
+    .from("statements")
+    .select("side, content")
+    .eq("room_id", roomId)
+
+  if (statementsError) {
+    return Response.json({ error: "查询报告隐私校验数据失败" }, { status: 500 })
+  }
+
+  const statementMap: Partial<Record<ReportSide, string>> = {}
+  for (const statement of statements ?? []) {
+    statementMap[statement.side as ReportSide] = statement.content
+  }
+
+  if (findStatementLeak(parsed.data, statementMap)) {
+    console.warn("[report] stored report blocked by privacy check")
+    return Response.json(
+      {
+        error: "报告包含可能泄露原文的内容，已被拦截",
+        code: "report_privacy_violation",
+        retryable: false,
+      },
+      { status: 409 },
+    )
   }
 
   return Response.json(

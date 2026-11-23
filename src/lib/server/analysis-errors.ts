@@ -5,6 +5,7 @@ export type AnalysisErrorCode =
   | "llm_rate_limited"
   | "llm_upstream_error"
   | "llm_invalid_output"
+  | "llm_privacy_violation"
   | "report_persist_failed"
   | "analysis_migration_missing"
   | "analysis_failed"
