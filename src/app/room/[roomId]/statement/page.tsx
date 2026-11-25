@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { FlowHeader } from "@/components/flow-header"
+import { CourtScene, type CourtPlayer } from "@/components/court-scene"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -195,6 +196,21 @@ function StatementContent() {
     )
   }
 
+  const meSide = state!.me.side
+  const courtPlayer = (side: "A" | "B"): CourtPlayer => {
+    const participant = state!.participants.find((item) => item.side === side)
+    const isMe = side === meSide
+    return {
+      side,
+      name:
+        participant?.displayName ??
+        (isMe ? state!.me.displayName : "等待入座"),
+      isMe,
+      joined: Boolean(participant),
+      submitted: isMe ? Boolean(state!.myStatement) : state!.otherSubmitted,
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
       <FlowHeader
@@ -203,6 +219,12 @@ function StatementContent() {
         topic={state!.room.topic}
         relation={state!.room.disputeType}
         bothSubmitted={state!.otherSubmitted}
+      />
+
+      <CourtScene
+        left={courtPlayer("A")}
+        right={courtPlayer("B")}
+        label="双方原文互不可见 · 各自落笔"
       />
 
       <Card className="rounded-3xl border-tang-100 shadow-soft">

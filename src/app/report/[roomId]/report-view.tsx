@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import {
   AlertTriangle,
+  ChevronDown,
+  Gavel,
   Heart,
   Lightbulb,
   Loader2,
@@ -13,6 +15,7 @@ import {
   ShieldAlert,
 } from "lucide-react"
 import { CatAvatar, CatMascot } from "@/components/cat-mascot"
+import { VerdictReactions } from "@/components/verdict-reactions"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -70,6 +73,13 @@ export function ReportView({ roomId }: { roomId: string }) {
   const [reportData, setReportData] = useState<RoomReportResponse | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
+  const [gavelVisible, setGavelVisible] = useState(true)
+
+  useEffect(() => {
+    if (!reportData) return
+    const timer = setTimeout(() => setGavelVisible(false), 1200)
+    return () => clearTimeout(timer)
+  }, [reportData])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -214,6 +224,28 @@ export function ReportView({ roomId }: { roomId: string }) {
             <blockquote className="mt-1 border-l-2 border-tang-300 pl-4 text-sm leading-7 text-cocoa-700">
               {report.overallComment}
             </blockquote>
+            <div className="verdict-cue">
+              <span
+                className={cn(
+                  "verdict-gavel",
+                  gavelVisible && "is-swinging",
+                )}
+                aria-hidden="true"
+              >
+                <Gavel className="size-5" />
+              </span>
+              <span className="verdict-cue-text">判判猫宣读判词</span>
+              {gavelVisible ? (
+                <button
+                  type="button"
+                  className="verdict-skip"
+                  onClick={() => setGavelVisible(false)}
+                >
+                  跳过宣读
+                </button>
+              ) : null}
+            </div>
+            <VerdictReactions />
           </div>
         </CardContent>
       </Card>
@@ -324,6 +356,19 @@ export function ReportView({ roomId }: { roomId: string }) {
         </div>
       </section>
 
+      <details className="verdict-reveal">
+        <summary className="verdict-reveal-summary">
+          <span>
+            <span className="verdict-reveal-kicker">和解环节</span>
+            看看怎么和解
+          </span>
+          <ChevronDown className="verdict-reveal-chevron" aria-hidden="true" />
+        </summary>
+        <div className="verdict-reveal-body">
+          <p className="verdict-reveal-note">
+            以下内容来自同一份调解报告，不需要再次请求模型。
+          </p>
+
       <section className="flex flex-col gap-4">
         <SectionTitle icon={Heart} className="bg-tang-100 text-tang-700">
           共同需求
@@ -369,6 +414,8 @@ export function ReportView({ roomId }: { roomId: string }) {
         <h2 className="text-lg font-bold sm:text-xl">趣味互动任务</h2>
         <TaskChecklist tasks={report.funTasks} />
       </section>
+        </div>
+      </details>
 
       <div className="flex items-start gap-2 rounded-2xl bg-muted/60 p-4 text-xs leading-6 text-muted-foreground">
         <ShieldAlert className="mt-0.5 size-4 shrink-0" />

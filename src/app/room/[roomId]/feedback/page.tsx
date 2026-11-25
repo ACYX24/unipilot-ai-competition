@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Loader2, RotateCw, ShieldAlert } from "lucide-react"
-import { CatMascot } from "@/components/cat-mascot"
+import { CourtScene, type CourtPlayer } from "@/components/court-scene"
 import { FlowHeader } from "@/components/flow-header"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -184,6 +184,18 @@ function FeedbackContent() {
     ? isAnalysisErrorRetryable(analysisFailure.code)
     : isAnalysisErrorRetryable(state?.analysis.errorCode)
   const generating = pending || Boolean(state?.analysis.leaseActive)
+  const reading = generating && !analysisErrorText && !completed
+  const meSide = state!.me.side
+  const courtPlayer = (side: "A" | "B"): CourtPlayer => {
+    const participant = state!.participants.find((item) => item.side === side)
+    return {
+      side,
+      name: participant?.displayName ?? "参与者",
+      isMe: side === meSide,
+      joined: Boolean(participant),
+      submitted: true,
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
@@ -199,23 +211,28 @@ function FeedbackContent() {
 
       <Card className="rounded-3xl border-tang-100 text-center shadow-soft">
         <CardHeader>
-          <CatMascot variant="judge" className="brand-status" />
-          <CardTitle className="mt-2 text-lg text-cocoa-700">
-            {completed
-              ? "调解报告已生成"
-              : analysisErrorText
-                ? "这次分析没有完成"
-                : generating
-                  ? "判判猫正在整理你们的观点"
-                  : "准备开始分析"}
-          </CardTitle>
-          <CardDescription>
-            {completed
-              ? "正在打开调解报告…"
-              : analysisErrorText
-                ? analysisErrorText
-                : "双方陈述已收到。AI 会生成观点总结、情绪与需求、沟通误区与改善建议，完成后自动打开调解报告。"}
-          </CardDescription>
+          <CourtScene
+          left={courtPlayer("A")}
+          right={courtPlayer("B")}
+          reading={reading}
+          className="court-scene-status"
+        />
+        <CardTitle className="mt-2 text-lg text-cocoa-700">
+          {completed
+            ? "调解报告已生成"
+            : analysisErrorText
+              ? "这次阅卷没有完成"
+              : generating
+                ? "判判猫正在阅卷"
+                : "准备阅卷"}
+        </CardTitle>
+        <CardDescription>
+          {completed
+            ? "正在打开调解报告…"
+            : analysisErrorText
+              ? analysisErrorText
+              : "双方陈述已收好。判判猫正在翻阅材料，整理观点与误会；完成后自动打开调解报告。"}
+        </CardDescription>
         </CardHeader>
 
         <CardContent className="flex flex-col items-center gap-4">
@@ -261,8 +278,8 @@ function FeedbackContent() {
               <div className="flex items-center gap-2 text-xs text-cocoa-400">
                 <Loader2 className="size-4 animate-spin" />
                 {generating
-                  ? "正在分析，通常需要 10–30 秒，请保持页面打开"
-                  : "即将开始分析…"}
+                  ? "正在阅卷，通常需要 10–30 秒，请保持页面打开"
+                  : "即将开始阅卷…"}
               </div>
               <p className="text-xs leading-5 text-cocoa-400">
                 两位参与者看到的是同一份调解报告。
