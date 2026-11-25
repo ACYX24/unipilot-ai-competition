@@ -6,16 +6,14 @@ export type FlowStage =
   | "waiting"
   | "feedback"
   | "analysis"
-  | "interaction"
   | "agreement"
 
 const stages: { key: FlowStage; label: string }[] = [
   { key: "statement", label: "独立陈述" },
-  { key: "waiting", label: "等待提交" },
-  { key: "feedback", label: "调解报告" },
-  { key: "analysis", label: "观点转述" },
-  { key: "interaction", label: "互动环节" },
-  { key: "agreement", label: "改善约定" },
+  { key: "waiting", label: "等待交卷" },
+  { key: "feedback", label: "阅卷" },
+  { key: "analysis", label: "宣读" },
+  { key: "agreement", label: "和解报告" },
 ]
 
 type FlowHeaderProps = {
@@ -28,7 +26,7 @@ type FlowHeaderProps = {
 }
 
 /**
- * 房间页共用头部：房间信息 + 六阶段进度。
+ * 庭审各页共用的房间信息和进度。
  * 纯展示组件，不读客户端状态，可在 Server / Client Component 中复用。
  */
 export function FlowHeader({
@@ -58,7 +56,7 @@ export function FlowHeader({
         </h1>
       ) : null}
 
-      <ol aria-label="调解进度" className="mt-5 grid grid-cols-3 gap-x-2 gap-y-2.5 sm:grid-cols-6">
+      <ol aria-label="调解进度" className="mt-4 grid grid-cols-5 gap-x-1.5 sm:gap-x-2">
         {stages.map((stage, index) => {
           const done = index < currentIndex
           const active = index === currentIndex

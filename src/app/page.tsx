@@ -14,7 +14,7 @@ const steps = [
   {
     icon: MessagesSquare,
     title: "各自把话说完",
-    description: "分别写下事情经过、自己的感受和期待。原始陈述只在自己这边显示。",
+    description: "各自用自己的话说说这件事。对方看不到你的原文。",
   },
   {
     icon: FileText,

@@ -2,9 +2,9 @@
 
 import { Suspense, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Loader2, LockKeyhole } from "lucide-react"
 import { FlowHeader } from "@/components/flow-header"
-import { CourtScene, type CourtPlayer } from "@/components/court-scene"
+import { CourtScene, courtPlayers } from "@/components/court-scene"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -14,54 +14,10 @@ import { loadCredentials } from "@/lib/credentials-storage"
 import { fetchRoomState, submitStatement } from "@/lib/room-api"
 import {
   STATEMENT_MAX_LENGTH,
-  buildStatementContent,
+  parseStatementDraft,
 } from "@/lib/statement-content"
 import { derivePhase, phaseAtLeast } from "@/lib/room-phase"
 import type { ParticipantCredentials, RoomStateResponse } from "@/lib/room-types"
-
-const QUESTIONS = [
-  {
-    id: "events",
-    title: "事情经过",
-    hint: "尽量只描述你看到的「事实」，先不评价对方。",
-    placeholder: "那天发生了什么？按时间顺序说说你的版本……",
-  },
-  {
-    id: "feelings",
-    title: "你当时的感受",
-    hint: "用「我感到……」开头，会比「你总是……」更容易被听进去。",
-    placeholder: "那一刻你的心情是什么样的？",
-  },
-  {
-    id: "concern",
-    title: "你最在意的问题",
-    hint: "如果只能挑一件事说清楚，你想挑哪件？",
-    placeholder: "这件事里，真正戳到你的是什么？",
-  },
-  {
-    id: "understand",
-    title: "你希望对方理解的内容",
-    hint: "换成一句话，你最想让 TA 明白什么？",
-    placeholder: "我希望 TA 知道……",
-  },
-  {
-    id: "change",
-    title: "你希望对方做出的改变",
-    hint: "具体、小步、可执行的改变，比「你必须变一个人」更有效。",
-    placeholder: "下次遇到类似情况，你希望 TA 怎么做？",
-  },
-] as const
-
-type QuestionId = (typeof QUESTIONS)[number]["id"]
-type Draft = Record<QuestionId, string>
-
-const EMPTY_DRAFT: Draft = {
-  events: "",
-  feelings: "",
-  concern: "",
-  understand: "",
-  change: "",
-}
 
 export default function StatementPage() {
   return (
@@ -85,7 +41,7 @@ function StatementContent() {
 
   const [credentials, setCredentials] = useState<ParticipantCredentials | null>(null)
   const [state, setState] = useState<RoomStateResponse | null>(null)
-  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT)
+  const [draft, setDraft] = useState("")
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
@@ -102,7 +58,7 @@ function StatementContent() {
       const draftKey = `catjudge:draft:${roomId}:${creds.side}`
       try {
         const saved = localStorage.getItem(draftKey)
-        if (saved) setDraft({ ...EMPTY_DRAFT, ...(JSON.parse(saved) as Partial<Draft>) })
+        if (saved) setDraft(parseStatementDraft(saved))
       } catch {
         /* 草稿损坏则忽略 */
       }
@@ -121,31 +77,21 @@ function StatementContent() {
     return () => clearTimeout(timer)
   }, [roomId, router])
 
-  function updateDraft(id: QuestionId, value: string) {
-    setDraft((prev) => {
-      const next = { ...prev, [id]: value }
-      if (credentials) {
-        try {
-          localStorage.setItem(`catjudge:draft:${roomId}:${credentials.side}`, JSON.stringify(next))
-        } catch {
-          /* 忽略存储失败 */
-        }
+  function updateDraft(value: string) {
+    setDraft(value)
+    if (credentials) {
+      try {
+        localStorage.setItem(`catjudge:draft:${roomId}:${credentials.side}`, JSON.stringify(value))
+      } catch {
+        /* 忽略存储失败 */
       }
-      return next
-    })
+    }
   }
 
-  const answeredCount = QUESTIONS.filter((q) => draft[q.id].trim()).length
-  const finalContent = buildStatementContent(
-    QUESTIONS.map((question) => ({
-      title: question.title,
-      value: draft[question.id],
-    })),
-  )
+  const finalContent = draft.trim()
   const contentLength = finalContent.length
   const contentTooLong = contentLength > STATEMENT_MAX_LENGTH
-  const canSubmit =
-    answeredCount === QUESTIONS.length && !contentTooLong && !submitting
+  const canSubmit = Boolean(credentials && contentLength && !contentTooLong && !submitting)
 
   async function handleSubmit() {
     if (!credentials || !canSubmit) return
@@ -196,62 +142,47 @@ function StatementContent() {
     )
   }
 
-  const meSide = state!.me.side
-  const courtPlayer = (side: "A" | "B"): CourtPlayer => {
-    const participant = state!.participants.find((item) => item.side === side)
-    const isMe = side === meSide
-    return {
-      side,
-      name:
-        participant?.displayName ??
-        (isMe ? state!.me.displayName : "等待入座"),
-      isMe,
-      joined: Boolean(participant),
-      submitted: isMe ? Boolean(state!.myStatement) : state!.otherSubmitted,
-    }
-  }
+  if (!state) return null
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="court-layout court-statement-layout">
       <FlowHeader
         current="statement"
-        inviteCode={state!.room.inviteCode}
-        topic={state!.room.topic}
-        relation={state!.room.disputeType}
-        bothSubmitted={state!.otherSubmitted}
+        inviteCode={state.room.inviteCode}
+        topic={state.room.topic}
+        relation={state.room.disputeType}
+        bothSubmitted={Boolean(state.myStatement) && state.otherSubmitted}
       />
 
-      <CourtScene
-        left={courtPlayer("A")}
-        right={courtPlayer("B")}
-        label="双方原文互不可见 · 各自落笔"
-      />
+      <CourtScene {...courtPlayers(state)} phase="statement" />
 
-      <Card className="rounded-3xl border-tang-100 shadow-soft">
-        <CardHeader>
-          <CardTitle className="display-heading text-xl">写下你的版本</CardTitle>
-          <CardDescription>
-            TA 看不到你的原文：这些内容只有你和判判猫能看到，提交后才会进入下一阶段。
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6">
-          {QUESTIONS.map((question) => (
-            <div key={question.id} className="flex flex-col gap-2">
-              <Label htmlFor={question.id} className="font-bold text-cocoa-700">
-                {question.title}
-              </Label>
-              <p id={`${question.id}-hint`} className="text-sm leading-6 text-cocoa-500">{question.hint}</p>
-              <Textarea
-                id={question.id}
-                value={draft[question.id]}
-                onChange={(event) => updateDraft(question.id, event.target.value)}
-                placeholder={question.placeholder}
-                maxLength={2000}
-                aria-describedby={`${question.id}-hint`}
-                className="room-field-control"
-              />
-            </div>
-          ))}
+      <section className="court-statement" aria-label="独立陈述">
+        <div className="court-statement-invitation">
+          <p className="text-sm font-bold text-tang-700">判判猫</p>
+          <p className="mt-1 leading-relaxed text-cocoa-800">我先听你说。想从哪儿讲都可以。</p>
+        </div>
+
+        <form
+          className="court-statement-reply"
+          onSubmit={(event) => {
+            event.preventDefault()
+            void handleSubmit()
+          }}
+        >
+          <Label htmlFor="statement-content" className="font-bold text-cocoa-800">我的陈述</Label>
+          <p id="statement-hint" className="text-sm leading-relaxed text-cocoa-500">
+            可以聊聊事情经过、你的感受，或接下来想怎么做。
+          </p>
+          <Textarea
+            id="statement-content"
+            value={draft}
+            onChange={(event) => updateDraft(event.target.value)}
+            placeholder="对我来说，事情是这样的……"
+            aria-describedby="statement-hint statement-privacy statement-length"
+            aria-invalid={contentTooLong || undefined}
+            disabled={submitting}
+            className="room-field-control min-h-28 md:text-base"
+          />
 
           {error ? (
             <p role="alert" className="text-sm text-destructive">
@@ -261,34 +192,33 @@ function StatementContent() {
 
           {contentTooLong ? (
             <p role="alert" className="text-xs text-destructive">
-              最终陈述超过 {STATEMENT_MAX_LENGTH}{" "}
-              字（含标题与换行），请精简后再提交。
+              陈述超过 {STATEMENT_MAX_LENGTH} 字，精简后就可以提交。
             </p>
           ) : null}
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p
-              className={
-                contentTooLong
-                  ? "text-xs text-destructive"
-                  : "text-xs text-cocoa-400"
-              }
-            >
-              已填写 {answeredCount}/{QUESTIONS.length} 个问题 · 最终陈述{" "}
-              {contentLength}/{STATEMENT_MAX_LENGTH} 字 · 提交后不可修改
-            </p>
+          <p id="statement-privacy" className="flex items-start gap-1.5 text-xs leading-relaxed text-cocoa-500">
+            <LockKeyhole aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+            对方看不到你的原文。双方提交后，判判猫会整理成和解报告。
+          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs leading-relaxed text-cocoa-500">
+              <p id="statement-length" className={contentTooLong ? "text-destructive" : "tabular-nums"}>
+                {contentLength}/{STATEMENT_MAX_LENGTH} 字
+              </p>
+              <p>提交后不可修改</p>
+            </div>
             <Button
+              type="submit"
               size="lg"
               disabled={!canSubmit}
-              onClick={handleSubmit}
               className="action-primary shrink-0"
             >
-              {submitting ? <Loader2 className="animate-spin" /> : null}
+              {submitting ? <Loader2 className="motion-safe:animate-spin" /> : null}
               {submitting ? "提交中…" : "提交我的陈述"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </form>
+      </section>
     </div>
   )
 }

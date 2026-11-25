@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Check, Copy, Loader2 } from "lucide-react"
-import { SheepWithLetter } from "@/components/cat-mascot"
+import { CourtScene, courtPlayers } from "@/components/court-scene"
 import { FlowHeader } from "@/components/flow-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -123,33 +123,36 @@ function WaitingContent() {
     )
   }
 
+  if (!state) return null
+
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="court-layout">
       <FlowHeader
         current="waiting"
-        inviteCode={state!.room.inviteCode}
-        topic={state!.room.topic}
-        relation={state!.room.disputeType}
-        bothSubmitted={false}
+        inviteCode={state.room.inviteCode}
+        topic={state.room.topic}
+        relation={state.room.disputeType}
+        bothSubmitted={Boolean(state.myStatement) && state.otherSubmitted}
       />
 
-      <Card className="rounded-3xl border-tang-100 text-center shadow-soft">
+      <CourtScene {...courtPlayers(state)} phase="waiting" />
+
+      <Card className="mx-auto max-w-2xl rounded-3xl border-tang-100 text-center shadow-soft">
         <CardHeader>
-          <SheepWithLetter className="brand-status" />
-          <CardTitle className="mt-2 text-lg text-cocoa-700">
-            {state!.otherSubmitted ? "双方都已提交" : "陈述已提交，等对方落笔"}
+          <CardTitle className="display-heading text-xl">
+            {state.otherSubmitted ? "双方已交卷" : "你的陈述已交卷"}
           </CardTitle>
           <CardDescription>
-            {state!.otherSubmitted
-              ? "判判猫正在整理你们的观点，马上就好。"
-              : "页面会自动检查对方是否提交，你可以先把这个邀请码发给 TA。"}
+            {state.otherSubmitted
+              ? "正在进入阅卷席。"
+              : "对方交卷后会自动进入阅卷席。你可以先把邀请码发给 TA。"}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           <div className="flex items-center gap-2 rounded-2xl bg-cream-100 px-4 py-2">
             <span className="text-xs font-bold text-cocoa-400">邀请码</span>
             <span className="font-mono text-lg font-extrabold tracking-widest text-tang-600">
-              {state!.room.inviteCode}
+              {state.room.inviteCode}
             </span>
             <Button
               type="button"
@@ -163,9 +166,9 @@ function WaitingContent() {
             </Button>
           </div>
 
-          {!state!.otherSubmitted ? (
+          {!state.otherSubmitted ? (
             <div className="flex items-center gap-2 text-xs text-cocoa-400">
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-4 motion-safe:animate-spin" />
               每 3 秒自动刷新一次
             </div>
           ) : null}

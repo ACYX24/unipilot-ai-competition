@@ -104,6 +104,8 @@
   --ring: #46684d;
   --hero-art-ground: #efe5cf;
   --primary-hover: #1c392b;
+  --court-frame: #bd9673;
+  --court-paper: #f6edde;
   --site-width: 79rem;
   --site-gutter: clamp(1.125rem, 5vw, 4rem);
   --chart-1: oklch(0.87 0 0);
@@ -564,241 +566,332 @@
     margin-inline: auto;
   }
 
-  /* 猫猫小法庭：陈述/阅卷共用的 A-B-法官三席场景 */
+  .court-layout {
+    width: 100%;
+    max-width: 58rem;
+    min-width: 0;
+    margin-inline: auto;
+    padding: clamp(1rem, 3.5vw, 2.5rem) clamp(1rem, 4vw, 2.25rem);
+  }
+
   .court-scene {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: end;
-    gap: 0.75rem;
-    min-height: 8.75rem;
-    margin-bottom: 1rem;
-    padding: 0.9rem 0.85rem 0.7rem;
-    border: 1px solid var(--color-tang-100);
-    border-radius: 1.35rem;
-    background:
-      radial-gradient(circle at 50% 18%, var(--color-cream-100), transparent 58%),
-      var(--color-cream-50);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: clamp(1rem, 2vw, 1.6rem);
+    border: 1px solid var(--court-frame);
+    border-radius: clamp(0.8rem, 2vw, 1.35rem);
+    background: var(--court-paper);
+    box-shadow: 0 12px 30px -22px #5f402e;
   }
 
-  .court-scene-status {
-    min-height: 7.5rem;
+  .court-statement-layout {
+    --court-panel-radius: clamp(0.8rem, 2vw, 1.35rem);
+  }
+
+  .court-statement-layout > .court-scene {
     margin-bottom: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
+    border-radius: var(--court-panel-radius) var(--court-panel-radius) 0 0;
+    box-shadow: none;
   }
 
-  .court-seat {
+  .court-statement {
+    display: grid;
+    gap: 0.85rem;
+    padding: clamp(0.9rem, 3vw, 1.6rem);
+    border: 1px solid var(--court-frame);
+    border-top: 0;
+    border-radius: 0 0 var(--court-panel-radius) var(--court-panel-radius);
+    background: var(--court-paper);
+  }
+
+  .court-statement-invitation {
+    justify-self: start;
+    padding: 0.65rem 0.95rem;
+    border: 1px solid var(--color-tang-200);
+    border-radius: 0.35rem 1rem 1rem 1rem;
+    background: var(--color-tang-50);
+  }
+
+  .court-statement-reply {
+    display: grid;
+    min-width: 0;
+    gap: 0.65rem;
+    width: min(100%, 40rem);
+    justify-self: end;
+    padding: clamp(0.8rem, 2vw, 1.15rem);
+    border: 1px solid var(--color-cream-300);
+    border-radius: 1rem 0.35rem 1rem 1rem;
+    background: var(--card);
+  }
+
+  .court-statement-reply textarea.room-field-control {
+    max-height: 20rem;
+    padding: 0.65rem 0.75rem;
+    background: var(--color-cream-50);
+  }
+
+  .court-stage-heading,
+  .court-seat-labels {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.7rem clamp(0.65rem, 2vw, 1.15rem);
+  }
+
+  .court-stage-heading {
+    border-bottom: 1px solid #ccb18e;
+  }
+
+  .court-stage-name {
+    color: #593c2d;
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 2.4vw, 1.45rem);
+    font-weight: 800;
+  }
+
+  .court-stage-phase {
+    color: #3d5747;
+    font-size: clamp(0.72rem, 1.3vw, 0.875rem);
+    font-weight: 700;
+    text-align: end;
+  }
+
+  .court-illustration {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .court-seat-labels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid #ccb18e;
+  }
+
+  .court-seat-label {
     display: flex;
     min-width: 0;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.2rem;
-    text-align: center;
+    justify-content: center;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.4rem;
+    color: #5d493a;
+    font-size: 0.75rem;
+    line-height: 1.5;
   }
 
-  .court-avatar {
-    display: block;
-    width: clamp(3.1rem, 11vw, 4.4rem);
+  .court-side {
+    font-weight: 800;
+    color: #684733;
   }
 
-  .court-seat-left .court-avatar {
-    transform: rotate(4deg);
+  .court-seat-label:last-child .court-side {
+    color: #3d5b65;
   }
 
-  .court-seat-right .court-avatar {
-    transform: rotate(-4deg);
-  }
-
-  .court-name {
-    max-width: 100%;
+  .court-seat-name {
+    min-width: 0;
     overflow-wrap: anywhere;
-    color: var(--foreground);
-    font-size: 0.8125rem;
     font-weight: 700;
-    line-height: 1.3;
   }
 
   .court-me {
-    margin-left: 0.25rem;
-    color: var(--color-tang-600);
-    font-size: 0.625rem;
-    font-weight: 700;
+    color: #57715b;
+    font-size: 0.68rem;
   }
 
-  .court-chip {
-    padding: 0.1rem 0.5rem;
-    border-radius: 999px;
-    background: var(--color-cream-200);
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1.5;
+  .court-seat-status {
+    color: #705b49;
   }
 
-  .court-chip.is-submitted {
-    background: var(--color-tang-100);
-    color: var(--color-tang-700);
+  .court-seat-status.is-submitted {
+    color: #3b6249;
   }
 
-  .court-chip.is-waiting {
-    border: 1px dashed var(--border);
-    background: transparent;
-  }
-
-  .court-judge {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-    padding-inline: 0.3rem;
-  }
-
-  .court-judge-avatar {
-    position: relative;
-    z-index: 1;
-    width: clamp(4.5rem, 15vw, 6.5rem);
-  }
-
-  .court-role {
-    position: relative;
-    z-index: 3;
-    color: var(--color-tang-700);
-    font-size: 0.75rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  .court-reading {
-    position: relative;
-    z-index: 3;
-    color: var(--color-tang-600);
-    font-size: 0.6875rem;
-    font-weight: 650;
-  }
-
-  .court-caption {
-    grid-column: 1 / -1;
-    margin-top: 0.15rem;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    line-height: 1.5;
-    text-align: center;
-  }
-
-  /* 阅卷纸张：只在真实分析进行时出现动画 */
-  .court-papers {
-    position: absolute;
-    inset: auto auto 0.8rem 50%;
-    z-index: 0;
+  .court-turn-page {
     display: none;
-    width: 8rem;
-    height: 3rem;
-    transform: translateX(-50%);
-    pointer-events: none;
+    transform-box: view-box;
+    transform-origin: 449px 227px;
   }
 
-  .court-scene.is-reading .court-papers {
+  .court-scene[data-court-phase="reading"] .court-turn-page {
     display: block;
+    animation: court-page-turn 2s ease-in-out infinite;
   }
 
-  .court-paper {
-    position: absolute;
-    inset: 0 auto auto 0;
-    width: 2.5rem;
-    height: 3rem;
-    border: 1px solid var(--color-cream-300);
-    border-radius: 0.3rem;
-    background: #fffdf7;
-    box-shadow: 0 6px 14px rgb(70 54 64 / 0.08);
-    transform-origin: 50% 100%;
+  .court-scene[data-court-phase="reading"] .court-reading-paw {
+    animation: court-paw-lift 2s ease-in-out infinite;
   }
 
-  .court-paper-back {
-    top: 0.2rem;
-    left: 0;
-    transform: rotate(-12deg);
+  @keyframes court-page-turn {
+    0%, 17% { transform: scaleX(0.05) rotate(-8deg); }
+    44% { transform: scaleX(0.85) rotate(-15deg); }
+    72% { transform: scaleX(-0.9) rotate(5deg); }
+    88%, 100% { transform: scaleX(-0.06) rotate(0); }
   }
 
-  .court-paper-middle {
-    top: 0.15rem;
-    right: 0;
-    left: auto;
-    transform: rotate(10deg);
+  @keyframes court-paw-lift {
+    0%, 15%, 95%, 100% { transform: translate(0, 0); }
+    46% { transform: translate(-15px, -9px); }
+    70% { transform: translate(-9px, -4px); }
   }
 
-  .court-paper-front {
-    left: 50%;
-    transform: translateX(-50%) rotate(-2deg);
+  .court-gavel {
+    transform-box: fill-box;
+    transform-origin: right center;
   }
 
-  .court-scene.is-reading .court-paper-front {
-    animation: court-paper-shuffle 1.6s ease-in-out infinite;
+  .court-gavel-impact {
+    opacity: 0;
   }
 
-  .court-scene.is-reading .court-paper-middle {
-    animation: court-paper-shuffle 1.6s ease-in-out 0.18s infinite;
+  .court-gavel-arm,
+  .court-gavel-paw {
+    display: none;
   }
 
-  .court-scene.is-reading .court-paper-back {
-    animation: court-paper-shuffle 1.6s ease-in-out 0.36s infinite;
+  .court-scene[data-court-phase="gavel"] .court-gavel-arm,
+  .court-scene[data-court-phase="gavel"] .court-gavel-paw {
+    display: block;
+    animation: court-gavel-grip 1.15s ease-out both;
   }
 
-  @keyframes court-paper-shuffle {
-    0%, 100% { transform: rotate(-2deg) translateY(0); }
-    35% { transform: rotate(-7deg) translate(-0.2rem, -0.25rem); }
-    65% { transform: rotate(5deg) translate(0.15rem, 0.1rem); }
+  .court-scene[data-court-phase="gavel"] .court-gavel {
+    animation: court-knock 1.15s cubic-bezier(.25,.7,.35,1) both;
   }
 
-  /* 宣读敲槌：装饰动画，不 gate 正文 */
-  .verdict-cue {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.35rem 0.6rem;
-    margin-top: 0.55rem;
+  .court-scene[data-court-phase="gavel"] .court-gavel-impact {
+    animation: court-impact 1.15s linear both;
   }
 
-  .verdict-gavel {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-tang-700);
-    transform-origin: 70% 80%;
+  @keyframes court-knock {
+    0%, 10% { transform: rotate(0); }
+    42% { transform: translateY(-12px) rotate(34deg); }
+    64% { transform: translateY(3px) rotate(-4deg); }
+    80%, 100% { transform: rotate(0); }
   }
 
-  .verdict-gavel.is-swinging {
-    animation: gavel-swing 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes court-impact {
+    0%, 61%, 86%, 100% { opacity: 0; }
+    66%, 72% { opacity: 1; }
   }
 
-  @keyframes gavel-swing {
-    0% { transform: rotate(0deg) translateY(0); }
-    18% { transform: rotate(-24deg) translateY(-2px); }
-    32% { transform: rotate(14deg) translateY(1px); }
-    48% { transform: rotate(-8deg); }
-    70%, 100% { transform: rotate(0deg) translateY(0); }
-  }
-
-  .verdict-cue-text {
-    color: var(--color-tang-700);
-    font-size: 0.75rem;
-    font-weight: 700;
+  @keyframes court-gavel-grip {
+    0%, 8%, 94%, 100% { opacity: 0; }
+    16%, 83% { opacity: 1; }
   }
 
   .verdict-skip {
+    position: absolute;
+    inset: auto 0.75rem 3.1rem auto;
     min-height: 2.75rem;
-    padding-inline: 0.25rem;
-    color: var(--muted-foreground);
-    font-size: 0.75rem;
+    border: 1px solid #a47c5c;
+    border-radius: 0.65rem;
+    padding: 0 0.65rem;
+    background: #fbf2e3;
+    color: #603f2e;
+    font-size: 0.8rem;
     font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+  }
+
+  .verdict-skip:hover {
+    background: #f2e1c9;
+  }
+
+  .court-verdict-board {
+    position: relative;
+    isolation: isolate;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #ba956b;
+    border-radius: 1rem;
+    background: #fff7e6;
+    box-shadow: inset 0 3px #e3c89f;
+    padding: clamp(0.95rem, 3vw, 1.5rem);
+    color: #523b2d;
+  }
+
+  .court-verdict-board h3 {
+    padding-inline-end: 2.25rem;
+    overflow-wrap: anywhere;
+    color: #5c3f30;
+    font-size: 1.03rem;
+    font-weight: 800;
+  }
+
+  .court-verdict-board p {
+    overflow-wrap: anywhere;
+  }
+
+  .court-verdict-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .court-verdict-steps button {
+    min-height: 2.75rem;
+    border: 1px solid #d2bd9d;
+    border-radius: 0.65rem;
+    padding: 0.35rem;
+    color: #674934;
+    font-size: 0.8rem;
+    font-weight: 650;
+  }
+
+  .court-verdict-steps button:hover,
+  .court-verdict-steps button[aria-pressed="true"] {
+    border-color: #56735e;
+    background: #e8eee2;
+    color: #2e4e3d;
+  }
+
+  .court-verdict-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .court-verdict-actions button {
+    min-height: 2.75rem;
+  }
+
+  .court-tomato {
+    position: absolute;
+    inset: 0.65rem 1rem auto auto;
+    width: 2rem;
+    height: 2rem;
+    pointer-events: none;
+  }
+
+  .court-tomato-fruit {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: court-tomato-toss 650ms ease-out both;
+  }
+
+  .court-tomato-splat {
+    animation: court-tomato-splat 650ms ease-out both;
+  }
+
+  @keyframes court-tomato-toss {
+    0% { opacity: 0; transform: translate(-5rem, 4rem) rotate(-120deg); }
+    18% { opacity: 1; }
+    77% { opacity: 1; transform: translate(-0.2rem, -0.55rem) rotate(0); }
+    82%, 100% { opacity: 0; transform: translate(0, 0) scale(0.65); }
+  }
+
+  @keyframes court-tomato-splat {
+    0%, 77% { opacity: 0; }
+    83%, 100% { opacity: 1; }
   }
 
   .verdict-reveal {
     border: 1px solid var(--color-tang-100);
-    border-radius: 1.5rem;
+    border-radius: 1rem;
     background: var(--color-cream-50);
   }
 
@@ -819,15 +912,6 @@
     display: none;
   }
 
-  .verdict-reveal-kicker {
-    display: block;
-    margin-bottom: 0.1rem;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-  }
-
   .verdict-reveal-chevron {
     flex: none;
     color: var(--color-tang-600);
@@ -841,135 +925,41 @@
   .verdict-reveal-body {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
     padding: 0 1rem 1.1rem;
   }
 
-  .verdict-reveal-note {
-    color: var(--muted-foreground);
-    font-size: 0.75rem;
-    line-height: 1.6;
-  }
-
-  /* 本端判词反馈：无网络、无持久化 */
-  .verdict-reactions {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem 0.65rem;
-    margin-top: 0.35rem;
-  }
-
-  .verdict-reactions-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .verdict-reaction-button {
-    min-height: 2.25rem;
-    gap: 0.3rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-  }
-
-  .reaction-note {
-    flex-basis: 100%;
-    min-height: 1rem;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    line-height: 1.5;
-  }
-
-  .reaction-prop {
-    position: absolute;
-    top: -1.55rem;
-    right: 0.6rem;
-    font-size: 1.45rem;
-    pointer-events: none;
-  }
-
-  .reaction-prop.is-tomato {
-    animation: tomato-toss 700ms ease-out both;
-  }
-
-  .reaction-prop.is-dissent {
-    animation: dissent-pop 700ms ease-out both;
-  }
-
-  @keyframes tomato-toss {
-    0% { opacity: 0; transform: translate(-3.5rem, 2.4rem) rotate(-28deg) scale(0.8); }
-    45% { opacity: 1; }
-    100% { opacity: 1; transform: translate(0, 0) rotate(8deg) scale(1); }
-  }
-
-  @keyframes dissent-pop {
-    0% { opacity: 0; transform: scale(0.4) rotate(-12deg); }
-    60% { opacity: 1; transform: scale(1.15) rotate(4deg); }
-    100% { opacity: 1; transform: scale(1) rotate(0deg); }
-  }
-
-  @media (max-width: 45rem) {
-    .court-scene {
-      gap: 0.35rem;
-      min-height: 7.4rem;
-      padding: 0.7rem 0.5rem 0.6rem;
-      border-radius: 1.15rem;
+  @media (max-width: 36rem) {
+    .court-stage-heading,
+    .court-seat-labels {
+      padding-block: 0.55rem;
     }
 
-    .court-scene-status {
-      min-height: 6.8rem;
-      padding: 0;
+    .court-seat-status {
+      flex-basis: 100%;
+      text-align: center;
     }
 
-    .court-papers {
-      bottom: 0.5rem;
-      width: 6rem;
-      height: 2.5rem;
-    }
-
-    .court-paper {
-      width: 2rem;
-      height: 2.5rem;
-    }
-
-    .court-avatar {
-      width: 3rem;
-    }
-
-    .court-judge-avatar {
-      width: 4.4rem;
-    }
-
-    .court-name {
-      font-size: 0.75rem;
-    }
-
-    .court-chip {
-      padding-inline: 0.4rem;
-      font-size: 0.625rem;
-    }
-
-    .court-caption {
-      font-size: 0.625rem;
-    }
-
-    .verdict-reveal-summary {
-      min-height: 3.25rem;
-      padding: 0.85rem 0.9rem;
-    }
-
-    .verdict-reveal-body {
-      padding: 0 0.85rem 0.9rem;
+    .verdict-skip {
+      bottom: 3.8rem;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .court-scene.is-reading .court-paper,
-    .verdict-gavel.is-swinging,
-    .reaction-prop {
+    .court-scene .court-turn-page,
+    .court-scene .court-reading-paw,
+    .court-scene .court-gavel,
+    .court-scene .court-gavel-impact,
+    .court-scene .court-gavel-arm,
+    .court-scene .court-gavel-paw,
+    .court-tomato-fruit,
+    .court-tomato-splat {
       animation: none !important;
+    }
+
+    .court-tomato-fruit,
+    .verdict-skip {
+      display: none;
     }
 
     .verdict-reveal-chevron {
