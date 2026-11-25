@@ -247,7 +247,9 @@ function LoadedReport({
   })
   const [step, setStep] = useState(0)
   const [reconciliationOpen, setReconciliationOpen] = useState(false)
+  const [taskDone, setTaskDone] = useState<boolean[]>(() => report.funTasks.map(() => false))
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const openingSkipRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!opening) return
@@ -257,11 +259,18 @@ function LoadedReport({
       // The sequence can still play once per visit if session storage is unavailable.
     }
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const endOpening = () => {
+      const restoreFocus = document.activeElement === openingSkipRef.current
+      setOpening(false)
+      if (restoreFocus) {
+        requestAnimationFrame(() => headingRef.current?.focus())
+      }
+    }
     const reduceMotion = () => {
-      if (preference.matches) setOpening(false)
+      if (preference.matches) endOpening()
     }
     preference.addEventListener("change", reduceMotion)
-    const timer = window.setTimeout(() => setOpening(false), 1350)
+    const timer = window.setTimeout(endOpening, 1350)
     return () => {
       preference.removeEventListener("change", reduceMotion)
       window.clearTimeout(timer)
@@ -271,6 +280,10 @@ function LoadedReport({
   function skipOpening() {
     setOpening(false)
     requestAnimationFrame(() => headingRef.current?.focus())
+  }
+
+  function toggleTask(index: number) {
+    setTaskDone((prev) => prev.map((value, i) => (i === index ? !value : value)))
   }
 
   function selectStep(index: number) {
@@ -300,7 +313,7 @@ function LoadedReport({
         right={seat("B")}
         phase={opening ? "gavel" : "verdict"}
         action={opening ? (
-          <button type="button" className="verdict-skip" onClick={skipOpening}>
+          <button ref={openingSkipRef} type="button" className="verdict-skip" onClick={skipOpening}>
             跳过敲槌
           </button>
         ) : null}
@@ -474,7 +487,7 @@ function LoadedReport({
 
                 <section className="flex flex-col gap-4">
                   <h2 className="text-lg font-bold sm:text-xl">趣味互动任务</h2>
-                  <TaskChecklist tasks={report.funTasks} />
+                  <TaskChecklist tasks={report.funTasks} completed={taskDone} onToggle={toggleTask} />
                 </section>
               </div>
             </details>

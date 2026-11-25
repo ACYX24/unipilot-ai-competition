@@ -6,11 +6,24 @@ import { Card, CardContent } from "@/components/ui/card"
 import type { MediationReport } from "@/lib/mediation-report-schema"
 import { cn } from "@/lib/utils"
 
-export function TaskChecklist({ tasks }: { tasks: MediationReport["funTasks"] }) {
-  const [done, setDone] = useState<boolean[]>(tasks.map(() => false))
+export function TaskChecklist({
+  tasks,
+  completed,
+  onToggle,
+}: {
+  tasks: MediationReport["funTasks"]
+  completed?: boolean[]
+  onToggle?: (index: number) => void
+}) {
+  const [localDone, setLocalDone] = useState<boolean[]>(tasks.map(() => false))
+  const done = completed ?? localDone
 
   function toggle(index: number) {
-    setDone((prev) => prev.map((value, i) => (i === index ? !value : value)))
+    if (onToggle) {
+      onToggle(index)
+      return
+    }
+    setLocalDone((prev) => prev.map((value, i) => (i === index ? !value : value)))
   }
 
   return (
