@@ -61,6 +61,11 @@ jobs:
       - name: Build (含 TypeScript 检查)
         run: pnpm build
 
+      - name: Build Qoder Sites 前端
+        env:
+          VITE_CATJUDGE_API_ORIGIN: "https://api.example.invalid"
+        run: pnpm build:sites
+
       - name: 检查是否误提交了环境变量文件
         run: |
           tracked=$(git ls-files | grep -E '(^|/)\.env(\.|$)' | grep -vFx '.env.example' || true)

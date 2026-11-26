@@ -61,6 +61,8 @@ docs/                    # API 契约、后端设计、AI 报告 schema
 
 见 `.env.example`。带 `NEXT_PUBLIC_` 前缀的变量会暴露给浏览器，只放 Supabase URL 与 anon key；`SUPABASE_SERVICE_ROLE_KEY` 与 `LLM_API_KEY` 仅限服务端。
 
+Qoder Sites 比赛版的前后端构建、迁移和匿名访问验收见 [比赛部署手册](docs/CONTEST_SITES.md)。
+
 ## 安全约定
 
 - API Key 只存服务端环境变量，不进 git、不进浏览器 bundle。

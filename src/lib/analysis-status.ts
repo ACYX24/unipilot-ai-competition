@@ -1,5 +1,8 @@
 const analysisErrorMessages: Record<string, string> = {
   llm_not_configured: "服务端尚未配置 AI 模型，请联系管理员",
+  contest_quota_daily: "今天的 AI 体验额度已用完，请明天再试",
+  contest_quota_minute: "当前体验人数较多，请稍后重试",
+  contest_quota_unavailable: "AI 体验暂无法使用，请联系管理员",
   llm_timeout: "AI 响应超时，请重试",
   llm_rate_limited: "AI 服务繁忙，请稍后重试",
   llm_auth_failed: "AI 服务鉴权失败，请联系管理员",
@@ -16,6 +19,7 @@ const analysisErrorMessages: Record<string, string> = {
 
 const nonRetryableCodes = new Set([
   "llm_not_configured",
+  "contest_quota_unavailable",
   "llm_auth_failed",
   "analysis_migration_missing",
   "statement_migration_missing",
