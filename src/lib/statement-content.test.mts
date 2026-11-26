@@ -3,6 +3,7 @@ import test from "node:test"
 import {
   STATEMENT_MAX_LENGTH,
   buildStatementContent,
+  parseStatementDraft,
 } from "./statement-content.ts"
 
 const titles = [
@@ -38,4 +39,23 @@ test("五题各 400 字时最终文本会超过上限", () => {
     titles.map((title) => ({ title, value: "长".repeat(400) })),
   )
   assert.ok(content.length > STATEMENT_MAX_LENGTH)
+})
+
+test("自由陈述草稿保留原来的空格和换行", () => {
+  const draft = " 我后来想了想。\n\n我希望下次能提前说一声。  "
+  assert.equal(parseStatementDraft(JSON.stringify(draft)), draft)
+})
+
+test("旧草稿只恢复已填写的答案，并保留小标题", () => {
+  const saved = JSON.stringify({
+    change: " 提前说一声 ",
+    events: "等了半小时",
+    feelings: "  ",
+    understand: null,
+  })
+  assert.equal(
+    parseStatementDraft(saved),
+    "【事情经过】\n等了半小时\n\n【你希望对方做出的改变】\n提前说一声",
+  )
+  assert.equal(parseStatementDraft("{"), "")
 })
