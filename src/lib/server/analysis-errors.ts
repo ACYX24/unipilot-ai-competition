@@ -1,5 +1,8 @@
 export type AnalysisErrorCode =
   | "llm_not_configured"
+  | "contest_quota_daily"
+  | "contest_quota_minute"
+  | "contest_quota_unavailable"
   | "llm_timeout"
   | "llm_auth_failed"
   | "llm_rate_limited"

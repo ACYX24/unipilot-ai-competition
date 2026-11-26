@@ -12,6 +12,12 @@ interface ErrorBody extends ApiError {
   retryable?: boolean
 }
 
+let roomApiOrigin = ""
+
+export function configureRoomApiOrigin(origin: string) {
+  roomApiOrigin = origin
+}
+
 export class RoomApiError extends Error {
   constructor(
     message: string,
@@ -53,7 +59,7 @@ export async function createRoom(input: {
   disputeType: string
   displayName: string
 }) {
-  const response = await fetch("/api/rooms", {
+  const response = await fetch(`${roomApiOrigin}/api/rooms`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -65,7 +71,7 @@ export async function joinRoom(input: {
   inviteCode: string
   displayName: string
 }) {
-  const response = await fetch("/api/rooms/join", {
+  const response = await fetch(`${roomApiOrigin}/api/rooms/join`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -74,7 +80,7 @@ export async function joinRoom(input: {
 }
 
 export async function fetchRoomState(roomId: string, accessToken: string) {
-  const response = await fetch(`/api/rooms/${roomId}/state`, {
+  const response = await fetch(`${roomApiOrigin}/api/rooms/${roomId}/state`, {
     headers: { "x-participant-token": accessToken },
     cache: "no-store",
   })
@@ -86,7 +92,7 @@ export async function submitStatement(
   accessToken: string,
   content: string,
 ) {
-  const response = await fetch(`/api/rooms/${roomId}/statements`, {
+  const response = await fetch(`${roomApiOrigin}/api/rooms/${roomId}/statements`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -101,7 +107,7 @@ export async function generateRoomAnalysis(
   roomId: string,
   accessToken: string,
 ) {
-  const response = await fetch(`/api/rooms/${roomId}/analysis`, {
+  const response = await fetch(`${roomApiOrigin}/api/rooms/${roomId}/analysis`, {
     method: "POST",
     headers: { "x-participant-token": accessToken },
     cache: "no-store",
@@ -110,7 +116,7 @@ export async function generateRoomAnalysis(
 }
 
 export async function fetchRoomReport(roomId: string, accessToken: string) {
-  const response = await fetch(`/api/rooms/${roomId}/report`, {
+  const response = await fetch(`${roomApiOrigin}/api/rooms/${roomId}/report`, {
     headers: { "x-participant-token": accessToken },
     cache: "no-store",
   })

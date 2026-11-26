@@ -6,6 +6,7 @@ import OpenAI, {
   RateLimitError,
 } from "openai"
 import { AnalysisError } from "./analysis-errors"
+import { consumeContestModelQuota } from "./contest-quota"
 import { getLlmConfig } from "./env"
 
 const LLM_TIMEOUT_MS = 30_000
@@ -52,6 +53,7 @@ export async function requestJsonCompletion(input: {
   maxTokens?: number
 }): Promise<string> {
   const config = getLlmConfig()
+  await consumeContestModelQuota()
   const client = new OpenAI({
     apiKey: config.apiKey,
     baseURL: config.baseURL,
