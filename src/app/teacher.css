@@ -1,4 +1,11 @@
+/* Hallmark · shape: app screen · genre: playful · posture: restrained */
+/* Keep CatJudge's cream, forest green and serif headings. Give the office its own walnut and slate accents. */
 @layer components {
+  :root {
+    --office-notebook-ochre: #f2e7d5;
+    --office-notebook-blue: #eaf0ef;
+    --office-notebook-walnut: #8c684a;
+  }
   .mode-choices { display: grid; gap: .55rem; margin-top: .55rem; }
   .mode-choices label, .teacher-practice label {
     display: flex;
@@ -15,18 +22,32 @@
     border-color: var(--color-tang-400);
     background: var(--color-tang-50);
   }
+  .mode-choices label:active, .teacher-practice label:active { background: var(--color-tang-100); }
   .mode-choices input, .teacher-practice input { flex-shrink: 0; accent-color: var(--color-tang-400); }
   .mode-choices strong, .mode-choices small, .teacher-practice strong, .teacher-practice small { display: block; }
   .mode-choices small, .teacher-practice small { margin-top: .2rem; color: var(--color-cocoa-500); line-height: 1.5; }
   .teacher-create-portrait { display: grid; place-items: center; min-height: 9rem; margin-block: 1.75rem; }
 
+  .home-modes {
+    --mode-radius: .9rem;
+    margin-block: clamp(2.5rem, 7vw, 6rem);
+    padding-block: clamp(1.5rem, 4vw, 3rem);
+    border-block: 1px solid var(--color-cream-300);
+  }
+  .home-modes h2 { font-size: clamp(1.6rem, 4vw, 2.6rem); text-wrap: balance; }
+  .home-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 2.5vw, 2rem); margin-top: 1.25rem; }
+  .home-mode { overflow: hidden; border-radius: var(--mode-radius); border: 1px solid var(--color-cream-300); background: var(--color-cream-50); }
+  .home-mode .teacher-office, .home-mode-court { display: block; width: 100%; aspect-ratio: 900 / 470; object-fit: cover; border-bottom: 1px solid var(--color-cream-300); }
+  .home-mode-copy { padding: .85rem 1.1rem 1rem; }
+  .home-mode-copy h3 { font-family: var(--font-display); font-size: 1.13rem; font-weight: 700; }
+  .home-mode-copy p { margin-top: .2rem; color: var(--color-cocoa-500); font-size: .9rem; line-height: 1.55; }
+
   .teacher-scene, .teacher-layout {
-    --notebook-ink: #223f3c;
-    --notebook-muted: #45615b;
-    --notebook-paper: #fff9ee;
-    --notebook-line: #cbbb9f;
-    --notebook-green: #dee8df;
-    --notebook-ochre: #f2e5c7;
+    --notebook-ink: var(--color-tang-500);
+    --notebook-muted: var(--color-tang-600);
+    --notebook-paper: var(--color-cream-50);
+    --notebook-line: var(--color-cream-300);
+    --notebook-green: var(--color-tang-50);
   }
   .teacher-scene {
     overflow: hidden;
@@ -40,227 +61,41 @@
     display: flex;
     align-items: center;
     gap: .55rem;
-    padding: .65rem 1rem;
+    padding: .62rem 1rem;
     border-bottom: 1px solid var(--notebook-line);
-    background: var(--notebook-green);
+    background: var(--notebook-paper);
+    font-size: .875rem;
     font-weight: 700;
   }
   .teacher-office {
-    --office-wall: #f1e7ca;
-    --office-floor: #d2ae82;
-    --office-wood: #936745;
-    --office-table: #ae7c51;
-    --office-top: #d8b17d;
-    --office-green: #537169;
-    --office-glass: #e2eee2;
-    --office-chair: #72857a;
-    --office-rug: #a9b49a;
-    --office-paper: #fff5dc;
-    position: relative;
-    container-type: inline-size;
-    overflow: hidden;
-    aspect-ratio: 2.65;
-    isolation: isolate;
+    display: block;
+    width: 100%;
+    height: auto;
     border-bottom: 1px solid var(--notebook-line);
-    background: linear-gradient(to bottom, var(--office-wall) 0 58%, var(--office-wood) 58% 60%, var(--office-floor) 60%);
+    background: var(--color-cream-200);
   }
-  .office-window {
-    position: absolute;
-    top: 10%;
-    left: 7%;
-    width: 24%;
-    height: 38%;
-    border: max(2px, .55cqi) solid var(--office-wood);
-    border-radius: .15rem;
-    background:
-      linear-gradient(0deg, transparent 48%, var(--office-wood) 48% 52%, transparent 52%),
-      linear-gradient(90deg, transparent 48%, var(--office-wood) 48% 52%, transparent 52%),
-      var(--office-glass);
-    box-shadow: 0 .55cqi 0 var(--office-wood);
+  .office-grain { pointer-events: none; mix-blend-mode: multiply; }
+  .office-at-ease { display: none; }
+  .teacher-office[data-office-action="sharing"] .office-tense { display: none; }
+  .teacher-office[data-office-action="sharing"] .office-at-ease { display: initial; }
+  .teacher-office[data-office-action="sharing"] .office-visitor-head {
+    transform-box: fill-box;
+    transform-origin: 63% 87%;
+    rotate: 5deg;
   }
-  .office-board {
-    position: absolute;
-    top: 9%;
-    left: 36%;
-    display: grid;
-    place-items: center;
-    width: 28%;
-    height: 18%;
-    border: max(2px, .5cqi) solid var(--office-wood);
-    background: var(--office-green);
-    color: var(--office-paper);
-    font-family: var(--font-display);
-    font-size: clamp(.58rem, 2.2cqi, 1.15rem);
-    letter-spacing: .1em;
+  .teacher-office[data-office-action="sharing"] .office-explaining-paw {
+    transform-box: fill-box;
+    transform-origin: 91% 23%;
+    rotate: -31deg;
   }
-  .office-bookshelf {
-    position: absolute;
-    top: 14%;
-    right: 7%;
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    width: 19%;
-    height: 43%;
-    border: max(2px, .65cqi) solid var(--office-wood);
-    background: var(--office-top);
-  }
-  .office-bookshelf i {
-    margin-inline: 8%;
-    border-bottom: max(2px, .4cqi) solid var(--office-wood);
-    background: linear-gradient(90deg, var(--office-green) 0 18%, transparent 18% 22%, #946453 22% 40%, transparent 40% 45%, #b69965 45% 61%, transparent 61%) 0 100% / 100% 74% no-repeat;
-  }
-  .office-bookshelf i:last-child { transform: scaleX(-1); }
-  .office-rug {
-    position: absolute;
-    inset: 67% 12% 4%;
-    border-radius: 50%;
-    background: var(--office-rug);
-  }
-  .office-teacher {
-    position: absolute;
-    bottom: 43%;
-    left: 50%;
-    display: grid;
-    justify-content: center;
-    align-items: start;
-    width: 15%;
-    height: 31%;
-    transform: translateX(-50%);
-    border-radius: 30% 30% .5rem .5rem;
-    background: var(--office-chair);
-  }
-  .office-teacher::before {
-    position: absolute;
-    inset: 41% 8% 0;
-    border-radius: 50% 50% 10% 10%;
-    background: var(--office-green);
-    content: "";
-  }
-  .office-teacher .teacher-portrait {
-    margin-top: -7%;
-    background: transparent;
-    font-size: clamp(.58rem, 3cqi, 1.34rem);
-  }
-  .office-seat {
-    position: absolute;
-    bottom: 20%;
-    left: 25.5%;
-    width: 15%;
-    height: 36%;
-    transform: translateX(-50%);
-    border: max(2px, .6cqi) solid var(--office-wood);
-    border-radius: 24% 24% .3rem .3rem;
-    background: var(--office-chair);
-    box-shadow: 0 .8cqi 0 -.25cqi var(--office-wood);
-  }
-  .office-seat[data-side="B"] { left: 74.5%; }
-  .office-seat img {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: auto;
-    max-width: 105%;
-    height: 122%;
-    transform: translateX(-50%);
-    object-fit: contain;
-  }
-  .office-seat[data-side="B"] img { transform: translateX(-50%) scaleX(-1); }
-  .office-table, .office-tabletop {
-    position: absolute;
-    left: 50%;
-    width: 52%;
-    transform: translateX(-50%);
-  }
-  .office-table {
-    bottom: 12%;
-    height: 23%;
-    border-radius: 12% 12% 46% 46%;
-    background: var(--office-table);
-    box-shadow: 0 .6cqi 0 var(--office-wood);
-  }
-  .office-tabletop {
-    bottom: 25%;
-    height: 22%;
-    border: max(1px, .42cqi) solid var(--office-wood);
-    border-radius: 50%;
-    background: var(--office-top);
-  }
-  .office-slip {
-    position: absolute;
-    bottom: 35%;
-    left: 41%;
-    display: block;
-    width: 6%;
-    height: 6.5%;
-    transform: translateX(-50%) rotate(-12deg);
-    border: 1px solid var(--office-wood);
-    clip-path: polygon(0 0, 83% 0, 100% 30%, 100% 100%, 0 100%);
-    background: var(--office-paper);
-  }
-  .office-slip[data-side="B"] { left: 59%; transform: translateX(-50%) rotate(10deg); }
   .teacher-scene-body { display: grid; gap: .95rem; padding: clamp(.95rem, 3.5vw, 1.8rem); }
-  .teacher-portrait {
-    position: relative;
-    display: block;
-    width: 4.5em;
-    height: 4.5em;
-    border-radius: 50%;
-    background: #e2d9c6;
-    --portrait-fur: #645f58;
-    --portrait-ink: #292f2a;
-  }
-  .teacher-create-portrait .teacher-portrait { scale: 1.6; }
-  .teacher-ear {
-    position: absolute;
-    top: .77em;
-    width: 1em;
-    height: 1.16em;
-    background: var(--portrait-fur);
-    clip-path: polygon(38% 0, 100% 88%, 0 100%);
-  }
-  .teacher-ear-left { left: .94em; transform: rotate(-16deg); }
-  .teacher-ear-right { right: .94em; transform: scaleX(-1) rotate(-16deg); }
-  .teacher-face {
-    position: absolute;
-    top: 1.35em;
-    left: .85em;
-    width: 2.8em;
-    height: 1.95em;
-    border-radius: 52% 48% 45% 46%;
-    background: var(--portrait-fur);
-  }
-  .teacher-face::before {
-    content: "";
-    position: absolute;
-    inset: .65em .5em .19em;
-    background: #e9d7b6;
-    border-radius: 53% 48% 47% 49%;
-  }
-  .teacher-face b {
-    position: absolute;
-    top: .7em;
-    left: .87em;
-    width: .16em;
-    height: .17em;
-    border-radius: 50%;
-    background: var(--portrait-ink);
-    box-shadow: .9em 0 var(--portrait-ink), .45em .32em #a85b43;
-  }
-  .teacher-scarf {
-    position: absolute;
-    top: 3.15em;
-    left: 1.38em;
-    width: 1.74em;
-    height: .48em;
-    border-radius: .16rem .3rem .2rem .3rem;
-    background: #9c5039;
-    transform: rotate(-7deg);
-  }
+  .teacher-portrait { display: block; width: 7.25rem; height: 7.25rem; border-radius: 50%; overflow: hidden; }
   .teacher-scene-guide h2, .teacher-report-page h2 {
     font-family: var(--font-display);
     font-size: clamp(1.15rem, 2.5vw, 1.6rem);
     line-height: 1.35;
     font-weight: 700;
+    text-wrap: balance;
   }
   .teacher-scene-guide p { margin-top: .4rem; color: var(--notebook-muted); font-size: .875rem; line-height: 1.55; }
   .teacher-note-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: .15rem; }
@@ -270,11 +105,10 @@
     align-items: center;
     gap: .55rem;
     padding: .55rem .65rem;
-    border: 1px solid var(--notebook-line);
-    border-left-width: .28rem;
-    border-radius: .35rem 1rem .35rem .35rem;
-    background: var(--notebook-ochre);
+    border-radius: .45rem;
+    background: var(--color-cream-100);
     font-size: .82rem;
+    font-variant-numeric: tabular-nums;
   }
   .teacher-note-status li[data-submitted="true"] { background: var(--notebook-green); }
   .teacher-note-status li span { overflow-wrap: anywhere; }
@@ -295,15 +129,20 @@
   .teacher-report-page { margin-block: 1rem; }
   .teacher-report-page h2 { display: flex; align-items: center; gap: .6rem; }
   .teacher-report-page h2 svg { flex: none; }
-  .teacher-observation { margin: .75rem 0 1rem; color: var(--notebook-muted); line-height: 1.7; }
+  .teacher-observation {
+    margin-bottom: 1.15rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--notebook-line);
+  }
+  .teacher-observation p { margin-top: .65rem; color: var(--notebook-muted); line-height: 1.7; overflow-wrap: anywhere; }
   .teacher-perspectives { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
   .teacher-perspectives article {
     padding: .85rem 1rem;
-    border-left: .3rem solid var(--notebook-line);
-    background: var(--notebook-ochre);
+    border-left: .2rem solid var(--office-notebook-walnut);
+    background: var(--office-notebook-ochre);
     overflow-wrap: anywhere;
   }
-  .teacher-perspectives article[data-side="B"] { background: var(--notebook-green); }
+  .teacher-perspectives article[data-side="B"] { background: var(--office-notebook-blue); border-left-color: var(--color-tang-300); }
   .teacher-perspectives h3, .teacher-details h3 { font-weight: 700; }
   .teacher-perspectives p, .teacher-details p { margin-top: .35rem; font-size: .9rem; line-height: 1.65; }
   .teacher-perspectives .teacher-context, .teacher-details .teacher-context { margin-top: .6rem; color: var(--notebook-muted); font-size: .82rem; }
@@ -327,17 +166,56 @@
     outline-offset: 3px;
   }
   @media (max-width: 42rem) {
-    .teacher-office { aspect-ratio: 1.96; }
+    .home-mode-grid { grid-template-columns: minmax(0, 1fr); }
     .teacher-perspectives { grid-template-columns: minmax(0, 1fr); }
     .teacher-note-status li { grid-template-columns: auto minmax(0, 1fr); }
     .teacher-note-status li small { grid-column: 2; }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .teacher-scene[data-teacher-phase="sorting"] .office-slip { animation: read-paper-slip 1.8s ease-in-out infinite; }
-    .teacher-scene[data-teacher-phase="sorting"] .office-slip[data-side="B"] { animation-delay: .3s; }
-    @keyframes read-paper-slip {
-      0%, 100% { translate: 0 0; }
-      50% { translate: 0 -.6cqi; }
+    .teacher-office[data-office-action="listening"] .office-teacher-head {
+      transform-box: fill-box;
+      transform-origin: 47% 88%;
+      animation: office-listen 4.8s ease-in-out 1;
     }
+    .teacher-office[data-office-action="listening"] .office-writing {
+      transform-box: fill-box;
+      transform-origin: 8% 45%;
+      animation: office-pen-pause 4.8s ease-in-out 1;
+    }
+    .teacher-office[data-office-action="organizing"] .office-board-card {
+      --office-card-travel: -66px 197px;
+      animation: office-file-card .9s cubic-bezier(.24, .66, .31, 1) both;
+    }
+    .teacher-office[data-office-action="organizing"] .office-board-card[data-side="B"] {
+      --office-card-travel: -72px 217px;
+      animation-delay: .32s;
+    }
+    .teacher-office[data-office-action="sharing"] .office-pointing {
+      transform-box: fill-box;
+      transform-origin: 5% 99%;
+      animation: office-show-board .7s ease-out both;
+    }
+    .teacher-office[data-office-action="sharing"] :is(.office-visitor-head, .office-explaining-paw) {
+      animation: office-settle .65s .24s ease-out backwards;
+    }
+    .teacher-office[data-office-action="sharing"] .office-shared-card {
+      animation: office-share-card .42s .28s ease-out both;
+    }
+    @keyframes office-listen {
+      0%, 18%, 58%, 100% { rotate: 0deg; }
+      33%, 40% { rotate: 6deg; }
+    }
+    @keyframes office-pen-pause {
+      0%, 73%, 100% { rotate: 0deg; }
+      25%, 59% { rotate: -8deg; }
+    }
+    @keyframes office-file-card {
+      from { translate: var(--office-card-travel); scale: .6; opacity: .15; }
+      22% { opacity: 1; }
+      to { translate: 0 0; scale: 1; opacity: 1; }
+    }
+    @keyframes office-show-board { from { rotate: 22deg; } to { rotate: 0deg; } }
+    @keyframes office-settle { from { rotate: 0deg; } }
+    @keyframes office-share-card { from { opacity: 0; } to { opacity: 1; } }
   }
 }

@@ -146,7 +146,7 @@ function WaitingContent() {
           </CardTitle>
           <CardDescription>
             {teacher
-              ? "老师收到对方的小纸条后会一起读。对方还没入座的话，可以把邀请码发给 TA。"
+              ? "老师收到对方的小纸条后会一起读。对方还没进办公室的话，可以把邀请码发给 TA。"
               : state.otherSubmitted
               ? "正在进入阅卷席。"
               : "对方交卷后会自动进入阅卷席。你可以先把邀请码发给 TA。"}

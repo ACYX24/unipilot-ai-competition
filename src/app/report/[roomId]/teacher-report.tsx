@@ -32,9 +32,11 @@ export function TeacherReport({ reportData, viewerSide }: {
         phase="report"
         seats={report.summaries.map(({ side, name }) => ({ side, name, submitted: true, isMe: side === viewerSide }))}
       />
-      <section className="teacher-report-page" aria-labelledby="teacher-perspectives">
-        <h2 id="teacher-perspectives"><MessageCircle aria-hidden="true" size={23} /> 各自怎么想</h2>
-        <p className="teacher-observation">{report.overallComment}</p>
+      <section className="teacher-report-page teacher-report-overview" aria-labelledby="teacher-perspectives">
+        <div className="teacher-observation">
+          <h2 id="teacher-perspectives"><MessageCircle aria-hidden="true" size={23} /> 各自怎么想</h2>
+          <p>{report.overallComment}</p>
+        </div>
         <div className="teacher-perspectives">
           {report.summaries.map(person => {
             const emotions = report.emotions.find(item => item.side === person.side)
