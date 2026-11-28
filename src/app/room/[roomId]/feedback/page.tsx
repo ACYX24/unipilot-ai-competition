@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Loader2, RotateCw, ShieldAlert } from "lucide-react"
-import { CourtScene, courtPlayers } from "@/components/court-scene"
+import { RoomScene } from "@/components/room-scene"
 import { FlowHeader } from "@/components/flow-header"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -188,19 +188,24 @@ function FeedbackContent() {
     : isAnalysisErrorRetryable(state.analysis.errorCode)
   const reading = bothSubmitted && state.room.status === "analyzing" &&
     (pending || state.analysis.leaseActive) && !analysisErrorText
+  const teacher = state.room.mode === "teacher"
+  const copy = teacher
+    ? { failure: "这次整理没有完成", reading: "猫老师正在整理便笺", ready: "准备整理便笺", waiting: "等双方写完", detail: "正在找出双方都在意的事。", idle: "双方写好便笺后开始整理。", action: "打开谈话回顾" }
+    : { failure: "这次阅卷没有完成", reading: "判判猫正在阅卷", ready: "准备阅卷", waiting: "等双方交卷", detail: "正在整理双方观点与误会。", idle: "双方交卷后开始阅卷。", action: "查看调解报告" }
 
   return (
     <div className="court-layout">
       <FlowHeader
         current="feedback"
+        mode={state.room.mode}
         inviteCode={state.room.inviteCode}
         topic={state.room.topic}
         relation={state.room.disputeType}
         bothSubmitted={bothSubmitted}
       />
 
-      <CourtScene
-        {...courtPlayers(state)}
+      <RoomScene
+        state={state}
         phase={reading ? "reading" : bothSubmitted ? "ready" : "waiting"}
       />
 
@@ -210,17 +215,17 @@ function FeedbackContent() {
             {completed
               ? "调解报告已生成"
               : analysisErrorText
-                ? "这次阅卷没有完成"
+                ? copy.failure
                 : reading
-                  ? "判判猫正在阅卷"
-                  : bothSubmitted ? "准备阅卷" : "等双方交卷"}
+                  ? copy.reading
+                  : bothSubmitted ? copy.ready : copy.waiting}
           </CardTitle>
           <CardDescription>
             {completed
               ? "正在打开调解报告…"
               : analysisErrorText
                 ? analysisErrorText
-                : reading ? "正在整理双方观点与误会。" : "双方交卷后开始阅卷。"}
+                : reading ? copy.detail : copy.idle}
           </CardDescription>
         </CardHeader>
 
@@ -233,7 +238,7 @@ function FeedbackContent() {
                 "rounded-full bg-tang-400 px-7 font-bold text-white shadow-soft hover:bg-tang-500",
               )}
             >
-              查看调解报告
+              {copy.action}
             </Link>
           ) : analysisErrorText ? (
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -267,8 +272,8 @@ function FeedbackContent() {
               <div className="flex items-center gap-2 text-xs text-cocoa-400">
                 <Loader2 className="size-4 motion-safe:animate-spin" />
                 {reading
-                  ? "正在阅卷，通常需要 10–30 秒，请保持页面打开"
-                  : "即将开始阅卷…"}
+                  ? "分析通常需要 10–30 秒，请保持页面打开"
+                  : copy.idle}
               </div>
               <p className="text-xs leading-5 text-cocoa-400">
                 两位参与者看到的是同一份调解报告。

@@ -1,16 +1,8 @@
 import { useId } from "react"
-import type { RoomStateResponse } from "@/lib/room-types"
+import type { RoomSeat } from "@/lib/room-types"
 import { cn } from "@/lib/utils"
 
-interface CourtPlayer {
-  side: "A" | "B"
-  name: string
-  isMe?: boolean
-  joined?: boolean
-  submitted: boolean
-}
-
-type CourtPhase = "statement" | "waiting" | "ready" | "reading" | "gavel" | "verdict"
+export type CourtPhase = "statement" | "waiting" | "ready" | "reading" | "gavel" | "verdict"
 
 const phaseLabel: Record<CourtPhase, string> = {
   statement: "独立陈述",
@@ -19,23 +11,6 @@ const phaseLabel: Record<CourtPhase, string> = {
   reading: "判判猫正在阅卷",
   gavel: "敲槌开读",
   verdict: "宣读调解意见",
-}
-
-export function courtPlayers(state: RoomStateResponse) {
-  function player(side: CourtPlayer["side"]): CourtPlayer {
-    const isMe = state.me.side === side
-    const participant = isMe ? state.me : state.participants.find((item) => item.side === side)
-
-    return {
-      side,
-      name: participant?.displayName ?? "空席",
-      isMe,
-      joined: Boolean(participant),
-      submitted: isMe ? Boolean(state.myStatement) : state.otherSubmitted,
-    }
-  }
-
-  return { left: player("A"), right: player("B") }
 }
 
 function Judge({ phase, portraitClip }: { phase: CourtPhase; portraitClip: string }) {
@@ -76,7 +51,7 @@ function Judge({ phase, portraitClip }: { phase: CourtPhase; portraitClip: strin
   )
 }
 
-function WitnessDesk({ player, portraitClip }: { player: CourtPlayer; portraitClip: string }) {
+function WitnessDesk({ player, portraitClip }: { player: RoomSeat; portraitClip: string }) {
   const isRight = player.side === "B"
 
   return (
@@ -108,8 +83,8 @@ function CourtIllustration({
   right,
   phase,
 }: {
-  left: CourtPlayer
-  right: CourtPlayer
+  left: RoomSeat
+  right: RoomSeat
   phase: CourtPhase
 }) {
   const id = useId()
@@ -131,7 +106,7 @@ function CourtIllustration({
   )
 }
 
-function SeatLabel({ player }: { player: CourtPlayer }) {
+function SeatLabel({ player }: { player: RoomSeat }) {
   const status = player.joined === false ? "等待入座" : player.submitted ? "已交卷" : "未交卷"
 
   return (
@@ -149,8 +124,8 @@ export function CourtScene({
   phase,
   action,
 }: {
-  left: CourtPlayer
-  right: CourtPlayer
+  left: RoomSeat
+  right: RoomSeat
   phase: CourtPhase
   action?: React.ReactNode
 }) {

@@ -26,6 +26,7 @@ import { RoomApiError, fetchRoomReport } from "@/lib/room-api"
 import type { ParticipantCredentials, RoomReportResponse } from "@/lib/room-types"
 import { cn } from "@/lib/utils"
 import { TaskChecklist } from "./task-checklist"
+import { TeacherReport } from "./teacher-report"
 
 const POLL_INTERVAL = 3000
 
@@ -198,7 +199,9 @@ export function ReportView({ roomId }: { roomId: string }) {
   }
 
   return (
-    <LoadedReport
+    reportData.mode === "teacher" ? (
+      <TeacherReport key={`${roomId}:${reportData.generatedAt}`} reportData={reportData} viewerSide={credentials.side} />
+    ) : <LoadedReport
       key={`${roomId}:${reportData.generatedAt}`}
       roomId={roomId}
       viewerSide={credentials.side}

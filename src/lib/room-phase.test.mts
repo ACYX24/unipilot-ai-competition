@@ -9,6 +9,7 @@ function buildState(
 ): RoomStateResponse {
   return {
     room: {
+      mode: "court",
       id: "room-1",
       inviteCode: "ABC123",
       topic: "谁该洗碗",

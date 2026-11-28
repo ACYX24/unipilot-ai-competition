@@ -17,6 +17,7 @@ create table if not exists rooms (
   invite_code text not null unique,
   topic text not null,
   dispute_type text not null,
+  mode text not null default 'court' check (mode in ('court', 'teacher')),
   status text not null default 'waiting'
     check (status in ('waiting', 'collecting', 'analyzing', 'completed')),
   expires_at timestamptz not null default (now() + interval '7 days'),

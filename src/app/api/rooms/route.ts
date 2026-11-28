@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { DISPUTE_TYPES } from "@/lib/room-types"
+import { DISPUTE_TYPES, ROOM_MODES, type RoomMode } from "@/lib/room-types"
 import {
   generateAccessToken,
   generateInviteCode,
@@ -8,6 +8,7 @@ import {
 import { createSupabaseAdmin } from "@/lib/server/supabase-admin"
 
 const createRoomSchema = z.object({
+  mode: z.enum(ROOM_MODES).default("court"),
   topic: z.string().trim().min(1, "请填写争议话题").max(200, "话题最多 200 字"),
   disputeType: z.enum(DISPUTE_TYPES),
   displayName: z.string().trim().min(1, "请填写昵称").max(30, "昵称最多 30 字"),
@@ -29,16 +30,16 @@ export async function POST(request: Request) {
     )
   }
 
-  const { topic, disputeType, displayName } = parsed.data
+  const { topic, disputeType, displayName, mode } = parsed.data
   const supabase = createSupabaseAdmin()
 
   // 邀请码唯一冲突时重试，最多 5 次
-  let room: { id: string; invite_code: string } | null = null
+  let room: { id: string; invite_code: string; mode: RoomMode } | null = null
   for (let attempt = 0; attempt < 5 && !room; attempt += 1) {
     const { data, error } = await supabase
       .from("rooms")
-      .insert({ topic, dispute_type: disputeType, invite_code: generateInviteCode() })
-      .select("id, invite_code")
+      .insert({ topic, dispute_type: disputeType, invite_code: generateInviteCode(), mode })
+      .select("id, invite_code, mode")
       .single()
 
     if (!error) {
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
     {
       roomId: room.id,
       inviteCode: room.invite_code,
+      mode: room.mode,
       side: "A",
       accessToken,
     },

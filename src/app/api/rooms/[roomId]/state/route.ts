@@ -28,7 +28,7 @@ export async function GET(
   const { data: room, error: roomError } = await supabase
     .from("rooms")
     .select(
-      "id, invite_code, topic, dispute_type, status, expires_at, analysis_error, analysis_lease_until",
+      "id, invite_code, topic, dispute_type, mode, status, expires_at, analysis_error, analysis_lease_until",
     )
     .eq("id", roomId)
     .maybeSingle()
@@ -82,6 +82,7 @@ export async function GET(
       inviteCode: room.invite_code,
       topic: room.topic,
       disputeType: room.dispute_type,
+      mode: room.mode,
       status: room.status,
       expiresAt: room.expires_at,
     },

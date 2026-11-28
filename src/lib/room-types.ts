@@ -1,8 +1,18 @@
 import type { MediationReport } from "./mediation-report-schema"
 
 export type RoomStatus = "waiting" | "collecting" | "analyzing" | "completed"
+export const ROOM_MODES = ["court", "teacher"] as const
+export type RoomMode = (typeof ROOM_MODES)[number]
 
 export type Side = "A" | "B"
+
+export interface RoomSeat {
+  side: Side
+  name: string
+  isMe?: boolean
+  joined?: boolean
+  submitted: boolean
+}
 
 export const DISPUTE_TYPES = [
   "家务分工",
@@ -44,6 +54,7 @@ export interface RoomStateResponse {
     inviteCode: string
     topic: string
     disputeType: string
+    mode: RoomMode
     status: RoomStatus
     expiresAt: string
   }
@@ -61,6 +72,7 @@ export interface AnalysisResponse {
 
 export interface RoomReportResponse {
   status: "completed"
+  mode: RoomMode
   inviteCode: string
   model: string
   generatedAt: string
@@ -69,10 +81,12 @@ export interface RoomReportResponse {
 
 export interface CreateRoomResponse extends ParticipantCredentials {
   inviteCode: string
+  mode: RoomMode
 }
 
 export interface JoinRoomResponse extends ParticipantCredentials {
   inviteCode: string
+  mode: RoomMode
 }
 
 export interface ApiError {

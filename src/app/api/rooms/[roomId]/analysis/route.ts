@@ -54,7 +54,7 @@ export async function POST(
     await Promise.all([
       supabase
         .from("rooms")
-        .select("id, topic, dispute_type, status, expires_at")
+        .select("id, topic, dispute_type, mode, status, expires_at")
         .eq("id", roomId)
         .maybeSingle(),
       supabase
@@ -155,6 +155,7 @@ export async function POST(
 
   const source: ReportSource = {
     roomId,
+    mode: room.mode,
     topic: room.topic,
     disputeType: room.dispute_type,
     names: { A: nameA, B: nameB },

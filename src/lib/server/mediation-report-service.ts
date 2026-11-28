@@ -1,4 +1,5 @@
 import { ZodError } from "zod"
+import type { RoomMode } from "@/lib/room-types"
 import {
   buildMediationReport,
   parseAiReportDraft,
@@ -10,8 +11,8 @@ import { AnalysisError } from "./analysis-errors"
 import { getLlmConfig } from "./env"
 import { requestJsonCompletion } from "./llm-client"
 import {
-  MEDIATION_SYSTEM_PROMPT,
   PRIVACY_RETRY_INSTRUCTION,
+  getMediationSystemPrompt,
   buildMediationUserPrompt,
 } from "./prompts/mediation-report"
 import { findStatementLeak } from "./report-privacy"
@@ -21,6 +22,7 @@ const MAX_REPORT_TOKENS = 2600
 
 export interface ReportSource {
   roomId: string
+  mode: RoomMode
   topic: string
   disputeType: string
   names: Record<ReportSide, string>
@@ -42,6 +44,7 @@ async function generateDraft(
   source: ReportSource,
   extraInstruction?: string,
 ): Promise<AiReportDraft> {
+  const system = getMediationSystemPrompt(source.mode)
   const basePrompt = buildMediationUserPrompt({
     topic: source.topic,
     disputeType: source.disputeType,
@@ -53,7 +56,7 @@ async function generateDraft(
     : basePrompt
 
   const first = await requestJsonCompletion({
-    system: MEDIATION_SYSTEM_PROMPT,
+    system,
     user: userPrompt,
     maxTokens: MAX_REPORT_TOKENS,
   })
@@ -73,7 +76,7 @@ ${first.slice(0, 3000)}
 请只输出修正后的 JSON 对象，严格遵守结构与数量限制，不要输出任何其他文字。`
 
     const repaired = await requestJsonCompletion({
-      system: MEDIATION_SYSTEM_PROMPT,
+      system,
       user: repairPrompt,
       temperature: 0,
       maxTokens: MAX_REPORT_TOKENS,
