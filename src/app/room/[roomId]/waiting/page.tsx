@@ -142,11 +142,11 @@ function WaitingContent() {
       <Card className="mx-auto max-w-2xl rounded-3xl border-tang-100 text-center shadow-soft">
         <CardHeader>
           <CardTitle className="display-heading text-xl">
-            {teacher ? (state.otherSubmitted ? "双方已写好" : "等对方写完便笺") : (state.otherSubmitted ? "双方已交卷" : "你的陈述已交卷")}
+            {teacher ? (state.otherSubmitted ? "两张小纸条都到了" : "等对方递来小纸条") : (state.otherSubmitted ? "双方已交卷" : "你的陈述已交卷")}
           </CardTitle>
           <CardDescription>
             {teacher
-              ? "对方的便笺到了会自动开始整理。还没加入的话，可以发给对方这个邀请码。"
+              ? "老师收到对方的小纸条后会一起读。对方还没入座的话，可以把邀请码发给 TA。"
               : state.otherSubmitted
               ? "正在进入阅卷席。"
               : "对方交卷后会自动进入阅卷席。你可以先把邀请码发给 TA。"}

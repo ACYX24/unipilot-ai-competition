@@ -45,13 +45,165 @@
     background: var(--notebook-green);
     font-weight: 700;
   }
+  .teacher-office {
+    --office-wall: #f1e7ca;
+    --office-floor: #d2ae82;
+    --office-wood: #936745;
+    --office-table: #ae7c51;
+    --office-top: #d8b17d;
+    --office-green: #537169;
+    --office-glass: #e2eee2;
+    --office-chair: #72857a;
+    --office-rug: #a9b49a;
+    --office-paper: #fff5dc;
+    position: relative;
+    container-type: inline-size;
+    overflow: hidden;
+    aspect-ratio: 2.65;
+    isolation: isolate;
+    border-bottom: 1px solid var(--notebook-line);
+    background: linear-gradient(to bottom, var(--office-wall) 0 58%, var(--office-wood) 58% 60%, var(--office-floor) 60%);
+  }
+  .office-window {
+    position: absolute;
+    top: 10%;
+    left: 7%;
+    width: 24%;
+    height: 38%;
+    border: max(2px, .55cqi) solid var(--office-wood);
+    border-radius: .15rem;
+    background:
+      linear-gradient(0deg, transparent 48%, var(--office-wood) 48% 52%, transparent 52%),
+      linear-gradient(90deg, transparent 48%, var(--office-wood) 48% 52%, transparent 52%),
+      var(--office-glass);
+    box-shadow: 0 .55cqi 0 var(--office-wood);
+  }
+  .office-board {
+    position: absolute;
+    top: 9%;
+    left: 36%;
+    display: grid;
+    place-items: center;
+    width: 28%;
+    height: 18%;
+    border: max(2px, .5cqi) solid var(--office-wood);
+    background: var(--office-green);
+    color: var(--office-paper);
+    font-family: var(--font-display);
+    font-size: clamp(.58rem, 2.2cqi, 1.15rem);
+    letter-spacing: .1em;
+  }
+  .office-bookshelf {
+    position: absolute;
+    top: 14%;
+    right: 7%;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    width: 19%;
+    height: 43%;
+    border: max(2px, .65cqi) solid var(--office-wood);
+    background: var(--office-top);
+  }
+  .office-bookshelf i {
+    margin-inline: 8%;
+    border-bottom: max(2px, .4cqi) solid var(--office-wood);
+    background: linear-gradient(90deg, var(--office-green) 0 18%, transparent 18% 22%, #946453 22% 40%, transparent 40% 45%, #b69965 45% 61%, transparent 61%) 0 100% / 100% 74% no-repeat;
+  }
+  .office-bookshelf i:last-child { transform: scaleX(-1); }
+  .office-rug {
+    position: absolute;
+    inset: 67% 12% 4%;
+    border-radius: 50%;
+    background: var(--office-rug);
+  }
+  .office-teacher {
+    position: absolute;
+    bottom: 43%;
+    left: 50%;
+    display: grid;
+    justify-content: center;
+    align-items: start;
+    width: 15%;
+    height: 31%;
+    transform: translateX(-50%);
+    border-radius: 30% 30% .5rem .5rem;
+    background: var(--office-chair);
+  }
+  .office-teacher::before {
+    position: absolute;
+    inset: 41% 8% 0;
+    border-radius: 50% 50% 10% 10%;
+    background: var(--office-green);
+    content: "";
+  }
+  .office-teacher .teacher-portrait {
+    margin-top: -7%;
+    background: transparent;
+    font-size: clamp(.58rem, 3cqi, 1.34rem);
+  }
+  .office-seat {
+    position: absolute;
+    bottom: 20%;
+    left: 25.5%;
+    width: 15%;
+    height: 36%;
+    transform: translateX(-50%);
+    border: max(2px, .6cqi) solid var(--office-wood);
+    border-radius: 24% 24% .3rem .3rem;
+    background: var(--office-chair);
+    box-shadow: 0 .8cqi 0 -.25cqi var(--office-wood);
+  }
+  .office-seat[data-side="B"] { left: 74.5%; }
+  .office-seat img {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: auto;
+    max-width: 105%;
+    height: 122%;
+    transform: translateX(-50%);
+    object-fit: contain;
+  }
+  .office-seat[data-side="B"] img { transform: translateX(-50%) scaleX(-1); }
+  .office-table, .office-tabletop {
+    position: absolute;
+    left: 50%;
+    width: 52%;
+    transform: translateX(-50%);
+  }
+  .office-table {
+    bottom: 12%;
+    height: 23%;
+    border-radius: 12% 12% 46% 46%;
+    background: var(--office-table);
+    box-shadow: 0 .6cqi 0 var(--office-wood);
+  }
+  .office-tabletop {
+    bottom: 25%;
+    height: 22%;
+    border: max(1px, .42cqi) solid var(--office-wood);
+    border-radius: 50%;
+    background: var(--office-top);
+  }
+  .office-slip {
+    position: absolute;
+    bottom: 35%;
+    left: 41%;
+    display: block;
+    width: 6%;
+    height: 6.5%;
+    transform: translateX(-50%) rotate(-12deg);
+    border: 1px solid var(--office-wood);
+    clip-path: polygon(0 0, 83% 0, 100% 30%, 100% 100%, 0 100%);
+    background: var(--office-paper);
+  }
+  .office-slip[data-side="B"] { left: 59%; transform: translateX(-50%) rotate(10deg); }
   .teacher-scene-body { display: grid; gap: .95rem; padding: clamp(.95rem, 3.5vw, 1.8rem); }
-  .teacher-scene-guide { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .9rem; }
   .teacher-portrait {
     position: relative;
     display: block;
-    width: 4.5rem;
-    height: 4.5rem;
+    width: 4.5em;
+    height: 4.5em;
     border-radius: 50%;
     background: #e2d9c6;
     --portrait-fur: #645f58;
@@ -60,46 +212,46 @@
   .teacher-create-portrait .teacher-portrait { scale: 1.6; }
   .teacher-ear {
     position: absolute;
-    top: .77rem;
-    width: 1rem;
-    height: 1.16rem;
+    top: .77em;
+    width: 1em;
+    height: 1.16em;
     background: var(--portrait-fur);
     clip-path: polygon(38% 0, 100% 88%, 0 100%);
   }
-  .teacher-ear-left { left: .94rem; transform: rotate(-16deg); }
-  .teacher-ear-right { right: .94rem; transform: scaleX(-1) rotate(-16deg); }
+  .teacher-ear-left { left: .94em; transform: rotate(-16deg); }
+  .teacher-ear-right { right: .94em; transform: scaleX(-1) rotate(-16deg); }
   .teacher-face {
     position: absolute;
-    top: 1.35rem;
-    left: .85rem;
-    width: 2.8rem;
-    height: 1.95rem;
+    top: 1.35em;
+    left: .85em;
+    width: 2.8em;
+    height: 1.95em;
     border-radius: 52% 48% 45% 46%;
     background: var(--portrait-fur);
   }
   .teacher-face::before {
     content: "";
     position: absolute;
-    inset: .65rem .5rem .19rem;
+    inset: .65em .5em .19em;
     background: #e9d7b6;
     border-radius: 53% 48% 47% 49%;
   }
   .teacher-face b {
     position: absolute;
-    top: .7rem;
-    left: .87rem;
-    width: .16rem;
-    height: .17rem;
+    top: .7em;
+    left: .87em;
+    width: .16em;
+    height: .17em;
     border-radius: 50%;
     background: var(--portrait-ink);
-    box-shadow: .9rem 0 var(--portrait-ink), .45rem .32rem #a85b43;
+    box-shadow: .9em 0 var(--portrait-ink), .45em .32em #a85b43;
   }
   .teacher-scarf {
     position: absolute;
-    top: 3.15rem;
-    left: 1.38rem;
-    width: 1.74rem;
-    height: .48rem;
+    top: 3.15em;
+    left: 1.38em;
+    width: 1.74em;
+    height: .48em;
     border-radius: .16rem .3rem .2rem .3rem;
     background: #9c5039;
     transform: rotate(-7deg);
@@ -111,8 +263,8 @@
     font-weight: 700;
   }
   .teacher-scene-guide p { margin-top: .4rem; color: var(--notebook-muted); font-size: .875rem; line-height: 1.55; }
-  .teacher-notebooks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: .15rem; }
-  .teacher-notebooks li {
+  .teacher-note-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: .15rem; }
+  .teacher-note-status li {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
@@ -124,9 +276,9 @@
     background: var(--notebook-ochre);
     font-size: .82rem;
   }
-  .teacher-notebooks li[data-submitted="true"] { background: var(--notebook-green); }
-  .teacher-notebooks li span { overflow-wrap: anywhere; }
-  .teacher-notebooks li small { color: var(--notebook-muted); white-space: nowrap; }
+  .teacher-note-status li[data-submitted="true"] { background: var(--notebook-green); }
+  .teacher-note-status li span { overflow-wrap: anywhere; }
+  .teacher-note-status li small { color: var(--notebook-muted); white-space: nowrap; }
 
   .teacher-statement, .teacher-report-page {
     padding: clamp(1rem, 3.25vw, 1.9rem);
@@ -175,16 +327,17 @@
     outline-offset: 3px;
   }
   @media (max-width: 42rem) {
+    .teacher-office { aspect-ratio: 1.96; }
     .teacher-perspectives { grid-template-columns: minmax(0, 1fr); }
-    .teacher-notebooks li { grid-template-columns: auto minmax(0, 1fr); }
-    .teacher-notebooks li small { grid-column: 2; }
+    .teacher-note-status li { grid-template-columns: auto minmax(0, 1fr); }
+    .teacher-note-status li small { grid-column: 2; }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .teacher-scene[data-teacher-phase="sorting"] li { animation: lift-notebook 1.8s ease-in-out infinite; }
-    .teacher-scene[data-teacher-phase="sorting"] li:nth-child(2) { animation-delay: .3s; }
-    @keyframes lift-notebook {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-3px); }
+    .teacher-scene[data-teacher-phase="sorting"] .office-slip { animation: read-paper-slip 1.8s ease-in-out infinite; }
+    .teacher-scene[data-teacher-phase="sorting"] .office-slip[data-side="B"] { animation-delay: .3s; }
+    @keyframes read-paper-slip {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -.6cqi; }
     }
   }
 }

@@ -158,7 +158,7 @@ function StatementContent() {
 
       <RoomScene state={state} phase="statement" />
 
-      <section className={teacher ? "teacher-statement" : "court-statement"} aria-label={teacher ? "写便笺" : "独立陈述"}>
+      <section className={teacher ? "teacher-statement" : "court-statement"} aria-label={teacher ? "写小纸条" : "独立陈述"}>
         {!teacher && (
           <div className="court-statement-invitation">
             <p className="text-sm font-bold text-tang-700">判判猫</p>
@@ -173,7 +173,7 @@ function StatementContent() {
             void handleSubmit()
           }}
         >
-          <Label htmlFor="statement-content" className="font-bold text-cocoa-800">{teacher ? "我的便笺" : "我的陈述"}</Label>
+          <Label htmlFor="statement-content" className="font-bold text-cocoa-800">{teacher ? "我的小纸条" : "我的陈述"}</Label>
           <p id="statement-hint" className="text-sm leading-relaxed text-cocoa-500">
             {teacher ? "写几句就可以。你希望对方多了解你一点什么？" : "可以聊聊事情经过、你的感受，或接下来想怎么做。"}
           </p>
@@ -202,7 +202,7 @@ function StatementContent() {
 
           <p id="statement-privacy" className="flex items-start gap-1.5 text-xs leading-relaxed text-cocoa-500">
             <LockKeyhole aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-            {teacher ? "对方看不到你的原文。猫老师会用两份便笺整理一份共同回顾。" : "对方看不到你的原文。双方提交后，判判猫会整理成和解报告。"}
+            {teacher ? "小纸条原文只交给猫老师。老师读完两张纸条后，会为你们整理一份共同回顾。" : "对方看不到你的原文。双方提交后，判判猫会整理成和解报告。"}
           </p>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs leading-relaxed text-cocoa-500">
@@ -218,7 +218,7 @@ function StatementContent() {
               className="action-primary shrink-0"
             >
               {submitting ? <Loader2 className="motion-safe:animate-spin" /> : null}
-              {submitting ? "提交中…" : teacher ? "合上并提交便笺" : "提交我的陈述"}
+              {submitting ? "提交中…" : teacher ? "把小纸条交给老师" : "提交我的陈述"}
             </Button>
           </div>
         </form>

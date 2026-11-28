@@ -18,8 +18,8 @@ const stages: { key: FlowStage; label: string }[] = [
 ]
 
 const teacherLabels: Record<FlowStage, string> = {
-  statement: "写下想法",
-  waiting: "等便笺",
+  statement: "写纸条",
+  waiting: "等纸条",
   feedback: "整理线索",
   analysis: "回看对话",
   agreement: "下一步",

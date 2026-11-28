@@ -68,7 +68,7 @@ export default function CreateRoomPage() {
               </label>
               <label>
                 <input type="radio" name="mode" value="teacher" checked={mode === "teacher"} onChange={() => setMode("teacher")} />
-                <span><strong>猫老师</strong><small>先写下各自的想法，再一起练习怎么开口。</small></span>
+                <span><strong>猫老师</strong><small>在办公室交小纸条，再一起练习怎么开口。</small></span>
               </label>
             </div>
           </fieldset>
