@@ -218,6 +218,7 @@ export function RoomView({ roomId }: { roomId: string }) {
   }
 
   const mySide = state.me.side
+  const teacher = state.room.mode === "teacher"
   const otherSide: Side = mySide === "A" ? "B" : "A"
   const otherParticipant = state.participants.find((p) => p.side === otherSide)
   const analysisErrorText =
@@ -243,7 +244,9 @@ export function RoomView({ roomId }: { roomId: string }) {
             {state.room.topic}
           </CardTitle>
           <CardDescription>
-            双方各自填写想法，提交前内容互相保密；双方都提交后，猫咪法官开始分析。
+            {teacher
+              ? "两位各写一张小纸条，原文互不可见。纸条都收到后，猫老师会梳理两边的想法。"
+              : "双方各自填写想法，提交前内容互相保密；双方都提交后，猫咪法官开始分析。"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -263,7 +266,7 @@ export function RoomView({ roomId }: { roomId: string }) {
             </Button>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            把邀请码发给另一半，TA 在首页选择「加入调解房间」即可进入。
+            把邀请码发给对方，TA 在首页选择「加入房间」即可进入。
           </p>
         </CardContent>
       </Card>
@@ -284,7 +287,7 @@ export function RoomView({ roomId }: { roomId: string }) {
                 placeholder="从你的角度说说这件事：发生了什么？你有什么感受和需要？"
                 maxLength={2000}
                 className="min-h-40 rounded-2xl bg-white text-sm leading-7"
-                aria-label="我的观点"
+                aria-label={teacher ? "我的小纸条" : "我的观点"}
               />
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">
@@ -296,7 +299,7 @@ export function RoomView({ roomId }: { roomId: string }) {
                   onClick={handleSubmit}
                 >
                   {submitting && <Loader2 className="animate-spin" />}
-                  {submitting ? "提交中…" : "提交我的观点"}
+                  {submitting ? "提交中…" : teacher ? "交给猫老师" : "提交我的观点"}
                 </Button>
               </div>
             </div>
@@ -352,7 +355,7 @@ export function RoomView({ roomId }: { roomId: string }) {
           )}
           {state.room.status === "collecting" && (
             <p className="text-sm text-muted-foreground">
-              等待双方都提交观点后，猫咪法官就会开始分析。
+              {teacher ? "等待另一位表达，两边都写好后就会开始梳理。" : "等待双方都提交观点后，猫咪法官就会开始分析。"}
             </p>
           )}
           {state.room.status === "analyzing" &&
@@ -381,7 +384,7 @@ export function RoomView({ roomId }: { roomId: string }) {
               <div className="flex items-center gap-2 text-sm text-violet-600">
                 <Loader2 className="size-4 animate-spin" />
                 {state.analysis.leaseActive || analysisPending
-                  ? "猫咪法官正在阅读双方陈述、生成报告…通常需要 10–30 秒"
+                  ? (teacher ? "猫老师正在梳理两边的想法…" : "猫咪法官正在阅读双方陈述、生成报告…通常需要 10–30 秒")
                   : "双方观点已齐全，正在准备分析…"}
               </div>
             ))}
@@ -398,7 +401,7 @@ export function RoomView({ roomId }: { roomId: string }) {
                 )}
               >
                 <FileHeart className="size-4" />
-                查看调解报告
+                {teacher ? "打开沟通记录" : "查看调解报告"}
               </Link>
             </>
           )}

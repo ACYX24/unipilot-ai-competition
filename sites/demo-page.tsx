@@ -1,10 +1,10 @@
 import { useRef, useState } from "react"
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react"
-import { CatAvatar } from "@/components/cat-mascot"
+import { ModePicker } from "@/components/mode-picker"
 import { Button } from "@/components/ui/button"
 import { saveSessionCredentials } from "@/lib/credentials-storage"
 import { RoomApiError, createRoom, joinRoom, submitStatement } from "@/lib/room-api"
-import type { CreateRoomResponse, JoinRoomResponse } from "@/lib/room-types"
+import type { CreateRoomResponse, JoinRoomResponse, RoomMode } from "@/lib/room-types"
 import Link from "./link"
 import { useRouter } from "./navigation"
 
@@ -33,6 +33,7 @@ export function DemoPage() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
   const [needsNewRoom, setNeedsNewRoom] = useState(false)
+  const [mode, setMode] = useState<RoomMode>("court")
 
   async function begin(reset = false) {
     if (busy.current) return
@@ -43,9 +44,9 @@ export function DemoPage() {
     try {
       if (reset) sessionStorage.removeItem(DEMO_KEY)
       let room = readDemoRoom()
-      if (!room) {
+      if (!room || (room.a.mode ?? "court") !== mode) {
         room = {
-          a: await createRoom({ topic: CASE_TOPIC, disputeType: "周末安排", displayName: "小橘" }),
+          a: await createRoom({ topic: CASE_TOPIC, disputeType: "周末安排", displayName: "小橘", mode }),
         }
         sessionStorage.setItem(DEMO_KEY, JSON.stringify(room))
       }
@@ -74,11 +75,13 @@ export function DemoPage() {
         <ArrowLeft size={16} aria-hidden="true" /> 返回首页
       </Link>
       <section aria-labelledby="demo-heading" className="rounded-[2rem] border border-border bg-card p-6 sm:p-10">
-        <CatAvatar tone="orange" className="mb-5 w-20" />
         <h1 id="demo-heading" className="display-heading text-3xl sm:text-5xl">{CASE_TOPIC}</h1>
         <p className="mt-4 max-w-prose leading-relaxed text-muted-foreground">
-          小橘和小羊遇到了一件虚构的小事。用他们的陈述开启一个房间，看判判猫如何实时生成调解报告。
+          小橘和小羊遇到了一件虚构的小事。选一种方式，看看系统如何把两边的想法整理成同一份报告。
         </p>
+        <div className="mt-6">
+          <ModePicker mode={mode} onChange={setMode} disabled={pending} />
+        </div>
         <div className="mt-7 grid gap-4 sm:grid-cols-2">
           <article className="rounded-2xl border border-border p-5">
             <h2 className="font-semibold">小橘</h2>
@@ -92,7 +95,7 @@ export function DemoPage() {
         {error && <p role="alert" className="mt-5 text-sm text-destructive">{error}</p>}
         <Button size="lg" className="action-primary mt-7" disabled={pending} onClick={() => void begin(needsNewRoom)}>
           {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
-          {pending ? "正在提交双方陈述…" : needsNewRoom ? "重开体验房间" : error ? "重试提交" : "提交两份陈述并开始调解"}
+          {pending ? "正在提交双方表达…" : needsNewRoom ? "重开体验房间" : error ? "重试提交" : "提交两份表达并开始调解"}
         </Button>
       </section>
     </div>

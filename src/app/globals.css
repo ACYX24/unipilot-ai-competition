@@ -721,21 +721,11 @@
     animation: court-page-turn 2s ease-in-out infinite;
   }
 
-  .court-scene[data-court-phase="reading"] .court-reading-paw {
-    animation: court-paw-lift 2s ease-in-out infinite;
-  }
-
   @keyframes court-page-turn {
     0%, 17% { transform: scaleX(0.05) rotate(-8deg); }
     44% { transform: scaleX(0.85) rotate(-15deg); }
     72% { transform: scaleX(-0.9) rotate(5deg); }
     88%, 100% { transform: scaleX(-0.06) rotate(0); }
-  }
-
-  @keyframes court-paw-lift {
-    0%, 15%, 95%, 100% { transform: translate(0, 0); }
-    46% { transform: translate(-15px, -9px); }
-    70% { transform: translate(-9px, -4px); }
   }
 
   .court-gavel {
@@ -948,7 +938,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     .court-scene .court-turn-page,
-    .court-scene .court-reading-paw,
     .court-scene .court-gavel,
     .court-scene .court-gavel-impact,
     .court-scene .court-gavel-arm,

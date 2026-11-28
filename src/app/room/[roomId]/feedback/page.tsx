@@ -190,7 +190,7 @@ function FeedbackContent() {
     (pending || state.analysis.leaseActive) && !analysisErrorText
   const teacher = state.room.mode === "teacher"
   const copy = teacher
-    ? { failure: "这次整理没有完成", reading: "猫老师正在读两张小纸条", ready: "准备读纸条", waiting: "等双方写完", detail: "正在找出双方都在意的事。", idle: "收到两张小纸条后，老师就会开始读。", action: "打开谈话回顾" }
+    ? { failure: "这次梳理没有完成", reading: "正在归纳重点和差异", ready: "准备梳理两边的想法", waiting: "等另一位写完", detail: "正在整理各自在意的事、可能的理解差异和共同点。", idle: "收到两张小纸条后，老师就会开始梳理。", action: "打开沟通记录" }
     : { failure: "这次阅卷没有完成", reading: "判判猫正在阅卷", ready: "准备阅卷", waiting: "等双方交卷", detail: "正在整理双方观点与误会。", idle: "双方交卷后开始阅卷。", action: "查看调解报告" }
 
   return (

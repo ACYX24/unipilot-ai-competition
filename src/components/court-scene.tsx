@@ -1,4 +1,4 @@
-import { useId } from "react"
+import { ScenePicture } from "./scene-artwork"
 import type { RoomSeat } from "@/lib/room-types"
 import { cn } from "@/lib/utils"
 
@@ -13,22 +13,10 @@ const phaseLabel: Record<CourtPhase, string> = {
   verdict: "宣读调解意见",
 }
 
-function Judge({ phase, portraitClip }: { phase: CourtPhase; portraitClip: string }) {
+function BenchProps() {
   return (
     <>
-      <image
-        href="/mascots/court-judge.webp"
-        x="376"
-        y={phase === "reading" ? 102 : 100}
-        width="148"
-        height="143"
-        preserveAspectRatio="xMidYMax meet"
-        clipPath={portraitClip}
-      />
-
-      <path d="M403 230q23-6 46-3 22-3 47 3l-3 2q-24-2-44 3-21-5-45-3Z" fill="#79462f" opacity=".45" />
-      <path d="M404 226q7-14 21-13l12 8-3 10h-23Z" fill="#e3ac74" stroke="#b27a50" strokeWidth="1.3" />
-      <path className="court-reading-paw" d="M491 226q-7-14-21-13l-12 8 3 10h23Z" fill="#e3ac74" stroke="#b27a50" strokeWidth="1.3" />
+      <path d="M403 230q23-6 46-3 22-3 47 3l-3 2q-24-2-44 3-21-5-45-3Z" fill="#79462f" opacity=".58" />
       <path d="M449 219q-22-9-38-2l-6 12q24-3 44 3 20-6 44-3l-6-12q-16-7-38 2Z" fill="#f9e8be" stroke="#b78b59" strokeWidth="1.2" />
       <path d="M449 220v10m-34-8q8-1 18 2m-19 1q9-1 17 1m35-2q9-3 16-2m-15 4 13-1" fill="none" stroke="#c7a477" strokeWidth="1" strokeLinecap="round" />
       <g className="court-turn-page">
@@ -36,9 +24,9 @@ function Judge({ phase, portraitClip }: { phase: CourtPhase; portraitClip: strin
         <path d="M416 207q14 1 24 9" fill="none" stroke="#c7a477" strokeWidth="1" />
       </g>
 
-      <rect x="520" y="230" width="55" height="4" rx="2" fill="#855338" />
-      <path className="court-gavel-arm" d="M486 209q20-7 41 0l32 3-4 13-38 2q-17-1-31-6Z" fill="#45563e" stroke="#354431" strokeWidth="1.6" />
-      <g transform="translate(544 221)">
+      <rect x="530" y="231" width="33" height="4" rx="2" fill="#70442e" />
+      <path className="court-gavel-arm" d="M486 207q26-9 44 4l25 0-2 12-32-1q-20 0-34-6Z" fill="#4e573e" stroke="#4c5138" strokeWidth="1.4" />
+      <g transform="translate(546 220)">
         <g className="court-gavel">
           <path d="m-3 1 27-11q4-1 5 2 1 2-2 4L0 6Z" fill="#835237" stroke="#603b29" strokeWidth="1.3" />
           <rect x="-13" y="-7" width="15" height="16" rx="3.5" transform="rotate(-23)" fill="#a96a43" stroke="#603b29" strokeWidth="1.4" />
@@ -51,58 +39,36 @@ function Judge({ phase, portraitClip }: { phase: CourtPhase; portraitClip: strin
   )
 }
 
-function WitnessDesk({ player, portraitClip }: { player: RoomSeat; portraitClip: string }) {
-  const isRight = player.side === "B"
-
+function DeskPaper({ player }: { player: RoomSeat }) {
+  if (player.joined === false) return null
   return (
-    <g transform={isRight ? "translate(900 0) scale(-1 1)" : undefined}>
-      {player.joined !== false && (
-        <image
-          href={isRight ? "/mascots/court-lamb.webp" : "/mascots/court-tabby.webp"}
-          x={isRight ? 152 : 138}
-          y={isRight ? 207 : 206}
-          width={isRight ? 106 : 132}
-          height="141"
-          preserveAspectRatio="xMidYMax meet"
-          clipPath={portraitClip}
-        />
-      )}
-
-      <path d="m264 324 39-2 15 13-43 2Z" fill="#885333" opacity=".38" />
-      <path d="m265 322 37-2 14 13-41 2Z" fill={player.submitted ? "#eac68a" : "#f8e8c0"} stroke="#ba8f59" strokeWidth="1" />
-      <path d="m277 326 21-1m-17 5 20-1" stroke="#bf9a6b" strokeWidth="1" strokeLinecap="round" />
-      {!player.submitted && player.joined !== false && (
-        <path d="m270 332 20-11" stroke="#7f553b" strokeWidth="2.3" strokeLinecap="round" />
-      )}
+    <g transform={player.side === "B" ? "translate(676 358) rotate(9)" : "translate(261 368) rotate(-8)"}>
+      <path d="m2 4 54-3 13 15-57 3Z" fill="#6b462f" opacity=".4" />
+      <path d="m0 0 54-3 13 15-57 3Z" fill={player.submitted ? "#e6ca94" : "#f5e3bd"} stroke="#b38a61" strokeWidth="1.2" />
+      <path d="m12 5 29-1m-26 5 28-1" stroke="#b49470" strokeWidth="1" strokeLinecap="round" />
+      {!player.submitted && <path d="m8 12 22-14" stroke="#624535" strokeWidth="2.5" strokeLinecap="round" />}
     </g>
   )
 }
 
-function CourtIllustration({
-  left,
-  right,
-  phase,
-}: {
-  left: RoomSeat
-  right: RoomSeat
-  phase: CourtPhase
-}) {
-  const id = useId()
-  const benchEdge = `${id}-bench-edge`
-  const deskEdge = `${id}-desk-edge`
+function CourtIllustration({ left, right, phase }: { left: RoomSeat; right: RoomSeat; phase: CourtPhase }) {
+  const frame = right.joined === false ? "court-arrival"
+    : phase === "statement" ? (right.isMe ? "court-response" : "court-claim")
+    : phase === "waiting" ? (left.submitted ? "court-response" : "court-claim")
+    : phase === "verdict" || phase === "gavel" ? "court-verdict"
+    : "court-reading"
 
   return (
-    <svg className="court-illustration" viewBox="0 0 900 474" aria-hidden="true">
-      <defs>
-        {/* The portraits stop at the tabletop edges in the painted backdrop. */}
-        <clipPath id={benchEdge}><rect width="900" height="219" /></clipPath>
-        <clipPath id={deskEdge}><rect width="900" height="314" /></clipPath>
-      </defs>
-      <image href="/mascots/court-backdrop.webp" width="900" height="474" preserveAspectRatio="none" />
-      <Judge phase={phase} portraitClip={`url(#${benchEdge})`} />
-      <WitnessDesk player={left} portraitClip={`url(#${deskEdge})`} />
-      <WitnessDesk player={right} portraitClip={`url(#${deskEdge})`} />
-    </svg>
+    <div className="court-illustration scene-stage" data-court-frame={frame} aria-hidden="true">
+      <div className="scene-frame">
+        <ScenePicture frame={frame} eager />
+        <svg className="scene-props" viewBox="0 0 1000 500" aria-hidden="true">
+          <g transform="translate(38 40) scale(1.08 .94)"><BenchProps /></g>
+          <DeskPaper player={left} />
+          <DeskPaper player={right} />
+        </svg>
+      </div>
+    </div>
   )
 }
 

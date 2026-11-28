@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ChevronDown, MessageCircle, NotebookPen } from "lucide-react"
 import { FlowHeader } from "@/components/flow-header"
 import { TeacherScene } from "@/components/teacher-scene"
+import { Button } from "@/components/ui/button"
 import type { RoomReportResponse, Side } from "@/lib/room-types"
 import { TaskChecklist } from "./task-checklist"
 
@@ -13,6 +14,7 @@ export function TeacherReport({ reportData, viewerSide }: {
 }) {
   const { report, inviteCode } = reportData
   const [action, setAction] = useState<number | null>(null)
+  const [supplement, setSupplement] = useState(false)
   const [completedTasks, setCompletedTasks] = useState(() => report.funTasks.map(() => false))
 
   function toggleTask(index: number) {
@@ -29,12 +31,21 @@ export function TeacherReport({ reportData, viewerSide }: {
         bothSubmitted
       />
       <TeacherScene
-        phase="report"
+        phase={action === null ? "report" : "closing"}
+        supplement={supplement}
         seats={report.summaries.map(({ side, name }) => ({ side, name, submitted: true, isMe: side === viewerSide }))}
+        actions={(
+          <div className="teacher-supplement">
+            <Button type="button" size="sm" variant="outline" onClick={() => setSupplement(value => !value)}>
+              {supplement ? "移除补充便签" : "贴一张补充便签"}
+            </Button>
+            <p role="status">{supplement ? "已贴在记录板，只在当前页面显示。" : "想回头补充时，可以在记录板留个提醒。"}</p>
+          </div>
+        )}
       />
       <section className="teacher-report-page teacher-report-overview" aria-labelledby="teacher-perspectives">
         <div className="teacher-observation">
-          <h2 id="teacher-perspectives"><MessageCircle aria-hidden="true" size={23} /> 各自怎么想</h2>
+          <h2 id="teacher-perspectives"><MessageCircle aria-hidden="true" size={23} /> 沟通记录</h2>
           <p>{report.overallComment}</p>
         </div>
         <div className="teacher-perspectives">
@@ -55,17 +66,17 @@ export function TeacherReport({ reportData, viewerSide }: {
           })}
         </div>
         <details className="teacher-details">
-          <summary>哪里可能听岔了 <ChevronDown size={18} aria-hidden="true" /></summary>
+          <summary>可能的理解差异 <ChevronDown size={18} aria-hidden="true" /></summary>
           <ul>
             {report.misunderstandings.map((item, index) => (
               <li key={index}><h3>{item.title}</h3><p>{item.detail}</p></li>
             ))}
           </ul>
-          <p className="teacher-context"><strong>可能的共同点</strong> {report.commonNeeds.join("、")}</p>
+          <p className="teacher-context"><strong>可以一起确认的地方</strong> {report.commonNeeds.join("、")}</p>
         </details>
       </section>
       <section className="teacher-report-page" aria-labelledby="teacher-practice">
-        <h2 id="teacher-practice"><NotebookPen aria-hidden="true" size={23} /> 下次试试怎么说</h2>
+        <h2 id="teacher-practice"><NotebookPen aria-hidden="true" size={23} /> 下一步可以试试</h2>
         <fieldset className="teacher-practice">
           <legend>挑一个你愿意试的小行动</legend>
           {report.suggestions.map((suggestion, index) => (

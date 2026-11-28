@@ -148,7 +148,7 @@ export function ReportView({ roomId }: { roomId: string }) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Loader2 className="size-5 text-primary motion-safe:animate-spin" />
-              猫咪法官正在整理报告…
+              正在整理这次沟通的报告…
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground">

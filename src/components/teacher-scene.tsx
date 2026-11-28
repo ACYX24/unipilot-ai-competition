@@ -3,24 +3,30 @@ import type { RoomSeat } from "@/lib/room-types"
 import { TeacherOffice, type OfficeAction } from "./teacher-office-art"
 
 const guidance = {
-  statement: { title: "写一张小纸条给猫老师", text: "可以从一个具体的片段说起。那时你在意的是什么？" },
-  waiting: { title: "猫老师收到了你的小纸条", text: "给对方一点时间，两张纸条都递到桌上后，老师会一起读。" },
-  ready: { title: "猫老师收到了两张小纸条", text: "整理开始后，我们会从各自的感受和期待里找线索。" },
-  sorting: { title: "猫老师正在读两张小纸条", text: "先听清双方在意的事，再找可能听岔的地方。" },
-  report: { title: "来一起回看这段对话", text: "先读两边的想法，再选一个下次愿意试的小行动。" },
+  statement: { title: "先写下你这一边的想法", text: "从一个具体的片段说起就好。那时你最在意什么？" },
+  waiting: { title: "给另一位一点时间", text: "你的纸条已经收到。等另一位也写完，我们再把两边的想法放在一起看。" },
+  ready: { title: "两边的想法都收到了", text: "接下来会整理各自在意的地方，以及可能需要再确认的细节。" },
+  sorting: { title: "猫老师正在梳理两边的想法", text: "先理清各自在意的事，再找可能听岔的地方。" },
+  report: { title: "一起回顾这次沟通", text: "看看两边有没有被准确理解，再决定下次愿意试什么。" },
+  closing: { title: "给下一次谈话留个起点", text: "你可以把选中的做法带到下次谈话，先问问另一位的想法。" },
 }
 
-export function TeacherScene({ phase, seats }: {
+export function TeacherScene({ phase, seats, supplement, actions }: {
   phase: keyof typeof guidance
   seats: RoomSeat[]
+  supplement?: boolean
+  actions?: React.ReactNode
 }) {
   const { title, text } = guidance[phase]
-  const action: OfficeAction = phase === "report" ? "sharing" : phase === "sorting" ? "organizing" : "listening"
+  const action: OfficeAction = phase === "report" ? "sharing"
+    : phase === "closing" ? "closing"
+    : phase === "sorting" ? "organizing"
+    : phase === "statement" ? "listening" : "waiting"
 
   return (
     <section className="teacher-scene" data-teacher-phase={phase} aria-label="猫老师的办公室">
       <div className="teacher-scene-heading"><BookOpen size={17} aria-hidden="true" /> 猫老师的办公室</div>
-      <TeacherOffice seats={seats} action={action} />
+      <TeacherOffice seats={seats} action={action} supplement={supplement} />
       <div className="teacher-scene-body">
         <div className="teacher-scene-guide" role="status">
           <h2>{title}</h2>
@@ -39,6 +45,7 @@ export function TeacherScene({ phase, seats }: {
             )
           })}
         </ul>
+        {actions}
       </div>
     </section>
   )

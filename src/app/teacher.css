@@ -5,9 +5,40 @@
     --office-notebook-ochre: #f2e7d5;
     --office-notebook-blue: #eaf0ef;
     --office-notebook-walnut: #8c684a;
+    --office-board-cream: #fff0ce;
+    --office-board-sage: #e5eacb;
+    --office-board-peach: #eed4b0;
+    --office-board-ink: #483c30;
+    --mode-curtain-shadow: #132b22;
   }
-  .mode-choices { display: grid; gap: .55rem; margin-top: .55rem; }
-  .mode-choices label, .teacher-practice label {
+  .mode-picker { min-width: 0; }
+  .mode-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: .55rem; }
+  .mode-choices label {
+    overflow: hidden;
+    border: 1px solid var(--color-cream-300);
+    border-radius: .65rem;
+    background: var(--card);
+    cursor: pointer;
+  }
+  .mode-choice-copy { display: flex; align-items: baseline; gap: .5rem; padding: .6rem .75rem; }
+  .mode-preview { position: relative; overflow: hidden; isolation: isolate; aspect-ratio: 2; margin-top: .75rem; border-radius: .65rem; background: var(--color-cream-200); }
+  .mode-preview > .scene-picture, .mode-preview-next, .mode-curtain { position: absolute; inset: 0; }
+  .mode-preview-controls { position: relative; height: 0; }
+  .mode-preview-controls button {
+    position: absolute;
+    right: .4rem;
+    bottom: .4rem;
+    min-height: 2.75rem;
+    padding-inline: .65rem;
+    border: 1px solid var(--color-cream-300);
+    border-radius: .45rem;
+    background: var(--color-cream-50);
+    color: var(--color-tang-700);
+    font-size: .8rem;
+    font-weight: 700;
+  }
+  .mode-preview-controls button:focus-visible, .home-mode:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+  .teacher-practice label {
     display: flex;
     align-items: baseline;
     gap: .7rem;
@@ -23,10 +54,11 @@
     background: var(--color-tang-50);
   }
   .mode-choices label:active, .teacher-practice label:active { background: var(--color-tang-100); }
+  .mode-picker:disabled label { cursor: not-allowed; background: var(--color-cream-200); color: var(--color-cocoa-500); }
   .mode-choices input, .teacher-practice input { flex-shrink: 0; accent-color: var(--color-tang-400); }
   .mode-choices strong, .mode-choices small, .teacher-practice strong, .teacher-practice small { display: block; }
   .mode-choices small, .teacher-practice small { margin-top: .2rem; color: var(--color-cocoa-500); line-height: 1.5; }
-  .teacher-create-portrait { display: grid; place-items: center; min-height: 9rem; margin-block: 1.75rem; }
+
 
   .home-modes {
     --mode-radius: .9rem;
@@ -36,10 +68,11 @@
   }
   .home-modes h2 { font-size: clamp(1.6rem, 4vw, 2.6rem); text-wrap: balance; }
   .home-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 2.5vw, 2rem); margin-top: 1.25rem; }
-  .home-mode { overflow: hidden; border-radius: var(--mode-radius); border: 1px solid var(--color-cream-300); background: var(--color-cream-50); }
-  .home-mode .teacher-office, .home-mode-court { display: block; width: 100%; aspect-ratio: 900 / 470; object-fit: cover; border-bottom: 1px solid var(--color-cream-300); }
+  .home-mode { display: block; overflow: hidden; border-radius: var(--mode-radius); border: 1px solid var(--color-cream-300); background: var(--color-cream-50); }
+  .home-mode .scene-picture { border-bottom: 1px solid var(--color-cream-300); }
   .home-mode-copy { padding: .85rem 1.1rem 1rem; }
-  .home-mode-copy h3 { font-family: var(--font-display); font-size: 1.13rem; font-weight: 700; }
+  .home-mode-copy h3 { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-family: var(--font-display); font-size: 1.13rem; font-weight: 700; }
+  .home-mode:hover, .home-mode:active { border-color: var(--color-tang-400); }
   .home-mode-copy p { margin-top: .2rem; color: var(--color-cocoa-500); font-size: .9rem; line-height: 1.55; }
 
   .teacher-scene, .teacher-layout {
@@ -67,29 +100,31 @@
     font-size: .875rem;
     font-weight: 700;
   }
-  .teacher-office {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-bottom: 1px solid var(--notebook-line);
-    background: var(--color-cream-200);
+  .scene-picture { display: block; width: 100%; height: auto; aspect-ratio: 2; object-fit: cover; }
+  .scene-stage { position: relative; overflow: hidden; isolation: isolate; aspect-ratio: 2; background: var(--color-cream-200); }
+  .scene-frame { position: absolute; inset-block: 0; left: 50%; width: 100%; transform: translateX(-50%); }
+  .scene-props, .office-listen-layer { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+  .teacher-office { border-bottom: 1px solid var(--notebook-line); }
+  .office-listen-layer { display: none; }
+  .office-slip-shadow, .office-board-shadow { fill: var(--office-notebook-walnut); opacity: .35; }
+  .office-slip-paper, .office-board-stock { fill: var(--office-board-cream); }
+  .office-board-pin, .office-board-paper text { fill: var(--office-board-ink); }
+  .office-board-rule { fill: none; stroke: var(--office-notebook-walnut); stroke-width: 1.2; opacity: .66; }
+  .office-board-paper text { font: 600 12px var(--font-display); }
+  .office-board-card[data-side="B"] .office-board-stock { fill: var(--office-notebook-blue); }
+  .office-board-next .office-board-stock { fill: var(--office-board-sage); }
+  .office-board-supplement .office-board-stock { fill: var(--office-board-peach); }
+  .teacher-supplement {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .6rem 1rem;
+    color: var(--notebook-muted);
+    font-size: .82rem;
   }
-  .office-grain { pointer-events: none; mix-blend-mode: multiply; }
-  .office-at-ease { display: none; }
-  .teacher-office[data-office-action="sharing"] .office-tense { display: none; }
-  .teacher-office[data-office-action="sharing"] .office-at-ease { display: initial; }
-  .teacher-office[data-office-action="sharing"] .office-visitor-head {
-    transform-box: fill-box;
-    transform-origin: 63% 87%;
-    rotate: 5deg;
-  }
-  .teacher-office[data-office-action="sharing"] .office-explaining-paw {
-    transform-box: fill-box;
-    transform-origin: 91% 23%;
-    rotate: -31deg;
-  }
+  .teacher-supplement button { min-height: 2.75rem; }
   .teacher-scene-body { display: grid; gap: .95rem; padding: clamp(.95rem, 3.5vw, 1.8rem); }
-  .teacher-portrait { display: block; width: 7.25rem; height: 7.25rem; border-radius: 50%; overflow: hidden; }
+
   .teacher-scene-guide h2, .teacher-report-page h2 {
     font-family: var(--font-display);
     font-size: clamp(1.15rem, 2.5vw, 1.6rem);
@@ -167,55 +202,64 @@
   }
   @media (max-width: 42rem) {
     .home-mode-grid { grid-template-columns: minmax(0, 1fr); }
+    .scene-stage { aspect-ratio: 1.84; }
+    .scene-frame { width: 108.696%; }
+    .mode-choice-copy { padding-inline: .55rem; gap: .35rem; }
     .teacher-perspectives { grid-template-columns: minmax(0, 1fr); }
     .teacher-note-status li { grid-template-columns: auto minmax(0, 1fr); }
     .teacher-note-status li small { grid-column: 2; }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .mode-preview-controls, .mode-curtain { display: none; }
+  }
   @media (prefers-reduced-motion: no-preference) {
-    .teacher-office[data-office-action="listening"] .office-teacher-head {
-      transform-box: fill-box;
-      transform-origin: 47% 88%;
-      animation: office-listen 4.8s ease-in-out 1;
-    }
-    .teacher-office[data-office-action="listening"] .office-writing {
-      transform-box: fill-box;
-      transform-origin: 8% 45%;
-      animation: office-pen-pause 4.8s ease-in-out 1;
-    }
+    .office-listen-layer { display: block; }
+    .office-listen-head { mask-image: radial-gradient(ellipse 12% 21% at 26.5% 31%, currentColor 53%, transparent 100%); }
+    .office-listen-head .scene-picture { transform-origin: 27% 41%; animation: office-listen 4s ease-in-out 1; }
+    .office-listen-pen { mask-image: radial-gradient(ellipse 7% 10% at 24.6% 61%, currentColor 49%, transparent 98%); }
+    .office-listen-pen .scene-picture { transform-origin: 22% 62%; animation: office-pen-pause 4s ease-in-out 1; }
+    .teacher-office[data-office-action="waiting"] .office-slip { animation: office-deposit .43s ease-out both; }
     .teacher-office[data-office-action="organizing"] .office-board-card {
-      --office-card-travel: -66px 197px;
-      animation: office-file-card .9s cubic-bezier(.24, .66, .31, 1) both;
+      --office-card-travel: -179px 290px;
+      animation: office-file-card 1s cubic-bezier(.24, .66, .31, 1) both;
     }
     .teacher-office[data-office-action="organizing"] .office-board-card[data-side="B"] {
-      --office-card-travel: -72px 217px;
-      animation-delay: .32s;
+      --office-card-travel: -183px 285px;
+      animation-delay: .24s;
     }
-    .teacher-office[data-office-action="sharing"] .office-pointing {
-      transform-box: fill-box;
-      transform-origin: 5% 99%;
-      animation: office-show-board .7s ease-out both;
-    }
-    .teacher-office[data-office-action="sharing"] :is(.office-visitor-head, .office-explaining-paw) {
-      animation: office-settle .65s .24s ease-out backwards;
-    }
-    .teacher-office[data-office-action="sharing"] .office-shared-card {
-      animation: office-share-card .42s .28s ease-out both;
+    .teacher-office[data-office-action="sharing"] .office-shared-card { animation: office-share-card .5s .2s ease-out both; }
+    .teacher-office[data-office-action="closing"] .office-shared-card { animation: office-close-card .42s ease-out both; }
+    .office-supplement-card { --office-card-travel: -160px 258px; animation: office-file-card .72s cubic-bezier(.24, .66, .31, 1) both; }
+    .mode-preview[data-changing="true"] > .scene-picture { animation: mode-scene-hold 1.35s ease-in both; }
+    .mode-preview[data-changing="true"] .mode-preview-next { animation: mode-scene-reveal 1.35s steps(1, end) both; }
+    .mode-curtain {
+      pointer-events: none;
+      border-inline: .2rem solid var(--office-notebook-walnut);
+      background: repeating-linear-gradient(90deg, var(--color-tang-500) 0%, var(--mode-curtain-shadow) 15%, var(--color-tang-600) 25%, var(--color-tang-500) 31%);
+      animation: mode-curtain-run 1.35s cubic-bezier(.54, .06, .31, 1) both;
     }
     @keyframes office-listen {
-      0%, 18%, 58%, 100% { rotate: 0deg; }
-      33%, 40% { rotate: 6deg; }
+      0%, 17%, 64%, 100% { transform: none; }
+      37%, 45% { transform: translate(.21%, .43%) rotate(1.8deg); }
     }
     @keyframes office-pen-pause {
-      0%, 73%, 100% { rotate: 0deg; }
-      25%, 59% { rotate: -8deg; }
+      0%, 24%, 84%, 100% { transform: none; }
+      46%, 66% { transform: translate(.16%, -.45%) rotate(-1.4deg); }
     }
+    @keyframes office-deposit { from { opacity: 0; } to { opacity: 1; } }
     @keyframes office-file-card {
-      from { translate: var(--office-card-travel); scale: .6; opacity: .15; }
-      22% { opacity: 1; }
+      from { translate: var(--office-card-travel); scale: .55; opacity: 0; }
+      24% { opacity: 1; }
       to { translate: 0 0; scale: 1; opacity: 1; }
     }
-    @keyframes office-show-board { from { rotate: 22deg; } to { rotate: 0deg; } }
-    @keyframes office-settle { from { rotate: 0deg; } }
-    @keyframes office-share-card { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes office-share-card { from { opacity: 0; translate: 0 5px; } to { opacity: 1; translate: 0 0; } }
+    @keyframes office-close-card { from { rotate: -4deg; } to { rotate: 0deg; } }
+    @keyframes mode-scene-hold { to { opacity: .65; } }
+    @keyframes mode-scene-reveal { 0%, 49% { opacity: 0; } 50%, 100% { opacity: 1; } }
+    @keyframes mode-curtain-run {
+      0%, 10% { transform: translateX(-102%); }
+      43%, 57% { transform: translateX(0); }
+      100% { transform: translateX(102%); }
+    }
   }
 }

@@ -2,7 +2,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, DoorOpen, FileText, LockKeyhole, MessagesSquare } from "lucide-react"
 import { JoinRoomDialog } from "@/components/join-room-dialog"
-import { TeacherOffice } from "@/components/teacher-office-art"
+import { modeDescriptions, ScenePicture } from "@/components/scene-artwork"
+import type { RoomMode } from "@/lib/room-types"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -74,27 +75,18 @@ export function HomeContent({ contest = false }: { contest?: boolean }) {
       <section className="home-modes" aria-labelledby="mode-heading">
         <h2 id="mode-heading" className="display-heading">选个地方，把话说开。</h2>
         <div className="home-mode-grid">
-          <article className="home-mode">
-            <Image
-              src="/mascots/court-backdrop.webp"
-              alt=""
-              width={1440}
-              height={758}
-              unoptimized
-              className="home-mode-court"
-            />
-            <div className="home-mode-copy">
-              <h3>猫法官</h3>
-              <p>各自陈述，听判判猫梳理两边的话。</p>
-            </div>
-          </article>
-          <article className="home-mode">
-            <TeacherOffice />
-            <div className="home-mode-copy">
-              <h3>猫老师</h3>
-              <p>进办公室，写张小纸条，再一起聊聊怎么开口。</p>
-            </div>
-          </article>
+          {(["court", "teacher"] satisfies RoomMode[]).map(mode => {
+            const { frame, name, detail } = modeDescriptions[mode]
+            return (
+              <Link key={mode} href={`/create?mode=${mode}`} className="home-mode">
+                <ScenePicture frame={frame} />
+                <div className="home-mode-copy">
+                  <h3>{name} <ArrowRight size={17} aria-hidden="true" /></h3>
+                  <p>{detail}</p>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       </section>
 

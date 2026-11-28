@@ -18,10 +18,10 @@ const stages: { key: FlowStage; label: string }[] = [
 ]
 
 const teacherLabels: Record<FlowStage, string> = {
-  statement: "写纸条",
-  waiting: "等纸条",
-  feedback: "整理线索",
-  analysis: "回看对话",
+  statement: "分别表达",
+  waiting: "等待对方",
+  feedback: "梳理想法",
+  analysis: "一起回顾",
   agreement: "下一步",
 }
 
@@ -57,7 +57,9 @@ export function FlowHeader({
         {relation && <span>{relation}</span>}
         <span className="inline-flex items-center gap-1.5">
           {bothSubmitted ? <Check size={15} aria-hidden="true" /> : <LockKeyhole size={15} aria-hidden="true" />}
-          {bothSubmitted ? "双方已提交" : "陈述互不可见"}
+          {mode === "teacher"
+            ? (bothSubmitted ? "已收到两张纸条" : "纸条原文互不可见")
+            : (bothSubmitted ? "双方已提交" : "陈述互不可见")}
         </span>
       </div>
 

@@ -1,11 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Loader2, LockKeyhole } from "lucide-react"
-import { CatMascot } from "@/components/cat-mascot"
-import { TeacherPortrait } from "@/components/teacher-office-art"
+import { ModePicker } from "@/components/mode-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,9 +14,14 @@ import { createRoom } from "@/lib/room-api"
 import { DISPUTE_TYPES, type RoomMode } from "@/lib/room-types"
 
 export default function CreateRoomPage() {
+  return <Suspense fallback={<div className="site-container py-12" role="status">正在打开创建页面…</div>}><CreateRoomForm /></Suspense>
+}
+
+function CreateRoomForm() {
   const router = useRouter()
+  const search = useSearchParams()
   const [topic, setTopic] = useState("")
-  const [mode, setMode] = useState<RoomMode>("court")
+  const [mode, setMode] = useState<RoomMode>(() => search.get("mode") === "teacher" ? "teacher" : "court")
   const [disputeType, setDisputeType] = useState<string>(DISPUTE_TYPES[6])
   const [displayName, setDisplayName] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -48,10 +52,7 @@ export default function CreateRoomPage() {
           <ArrowLeft size={16} aria-hidden="true" /> 返回首页
         </Link>
         <h1 id="create-heading" className="display-heading">创建调解房间</h1>
-        <p>写下你们想聊的事。房间创建后，把邀请码发给对方，就可以分别开始陈述。</p>
-        {mode === "teacher" ? (
-          <div className="teacher-create-portrait"><TeacherPortrait /></div>
-        ) : <CatMascot className="create-portrait" />}
+        <p>写下你们想聊的事。房间创建后，把邀请码发给对方，就可以分别开始表达。</p>
         <p className="create-privacy">
           <LockKeyhole size={16} aria-hidden="true" /> 双方原始陈述互不可见
         </p>
@@ -59,19 +60,7 @@ export default function CreateRoomPage() {
 
       <div className="create-panel">
         <form onSubmit={handleSubmit} className="room-form" aria-label="创建房间表单">
-          <fieldset>
-            <legend>选择调解方式</legend>
-            <div className="mode-choices">
-              <label>
-                <input type="radio" name="mode" value="court" checked={mode === "court"} onChange={() => setMode("court")} />
-                <span><strong>猫法官</strong><small>各自陈述，听判判猫宣读调解意见。</small></span>
-              </label>
-              <label>
-                <input type="radio" name="mode" value="teacher" checked={mode === "teacher"} onChange={() => setMode("teacher")} />
-                <span><strong>猫老师</strong><small>在办公室交小纸条，再一起练习怎么开口。</small></span>
-              </label>
-            </div>
-          </fieldset>
+          <ModePicker mode={mode} onChange={setMode} disabled={submitting} />
           <div className="room-field">
             <div className="room-field-caption">
               <Label htmlFor="topic">你们想聊什么？</Label>
