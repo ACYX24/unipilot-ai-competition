@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Loader2, LockKeyhole } from "lucide-react"
 import { FlowHeader } from "@/components/flow-header"
-import { CourtScene, courtPlayers } from "@/components/court-scene"
+import { RoomScene } from "@/components/room-scene"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -143,41 +143,45 @@ function StatementContent() {
   }
 
   if (!state) return null
+  const teacher = state.room.mode === "teacher"
 
   return (
-    <div className="court-layout court-statement-layout">
+    <div className={teacher ? "court-layout teacher-layout" : "court-layout court-statement-layout"}>
       <FlowHeader
         current="statement"
+        mode={state.room.mode}
         inviteCode={state.room.inviteCode}
         topic={state.room.topic}
         relation={state.room.disputeType}
         bothSubmitted={Boolean(state.myStatement) && state.otherSubmitted}
       />
 
-      <CourtScene {...courtPlayers(state)} phase="statement" />
+      <RoomScene state={state} phase="statement" />
 
-      <section className="court-statement" aria-label="独立陈述">
-        <div className="court-statement-invitation">
-          <p className="text-sm font-bold text-tang-700">判判猫</p>
-          <p className="mt-1 leading-relaxed text-cocoa-800">我先听你说。想从哪儿讲都可以。</p>
-        </div>
+      <section className={teacher ? "teacher-statement" : "court-statement"} aria-label={teacher ? "写小纸条" : "独立陈述"}>
+        {!teacher && (
+          <div className="court-statement-invitation">
+            <p className="text-sm font-bold text-tang-700">判判猫</p>
+            <p className="mt-1 leading-relaxed text-cocoa-800">我先听你说。想从哪儿讲都可以。</p>
+          </div>
+        )}
 
         <form
-          className="court-statement-reply"
+          className={teacher ? "teacher-note-form" : "court-statement-reply"}
           onSubmit={(event) => {
             event.preventDefault()
             void handleSubmit()
           }}
         >
-          <Label htmlFor="statement-content" className="font-bold text-cocoa-800">我的陈述</Label>
+          <Label htmlFor="statement-content" className="font-bold text-cocoa-800">{teacher ? "我的小纸条" : "我的陈述"}</Label>
           <p id="statement-hint" className="text-sm leading-relaxed text-cocoa-500">
-            可以聊聊事情经过、你的感受，或接下来想怎么做。
+            {teacher ? "写几句就可以。你希望对方多了解你一点什么？" : "可以聊聊事情经过、你的感受，或接下来想怎么做。"}
           </p>
           <Textarea
             id="statement-content"
             value={draft}
             onChange={(event) => updateDraft(event.target.value)}
-            placeholder="对我来说，事情是这样的……"
+            placeholder={teacher ? "当时我真正想说的是……" : "对我来说，事情是这样的……"}
             aria-describedby="statement-hint statement-privacy statement-length"
             aria-invalid={contentTooLong || undefined}
             disabled={submitting}
@@ -198,7 +202,7 @@ function StatementContent() {
 
           <p id="statement-privacy" className="flex items-start gap-1.5 text-xs leading-relaxed text-cocoa-500">
             <LockKeyhole aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-            对方看不到你的原文。双方提交后，判判猫会整理成和解报告。
+            {teacher ? "小纸条原文只交给猫老师。老师读完两张纸条后，会为你们整理一份共同回顾。" : "对方看不到你的原文。双方提交后，判判猫会整理成和解报告。"}
           </p>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs leading-relaxed text-cocoa-500">
@@ -214,7 +218,7 @@ function StatementContent() {
               className="action-primary shrink-0"
             >
               {submitting ? <Loader2 className="motion-safe:animate-spin" /> : null}
-              {submitting ? "提交中…" : "提交我的陈述"}
+              {submitting ? "提交中…" : teacher ? "把小纸条交给老师" : "提交我的陈述"}
             </Button>
           </div>
         </form>

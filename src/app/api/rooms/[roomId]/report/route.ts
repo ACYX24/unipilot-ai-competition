@@ -27,7 +27,7 @@ export async function GET(
   const supabase = createSupabaseAdmin()
   const { data: room, error: roomError } = await supabase
     .from("rooms")
-    .select("invite_code, status, expires_at")
+    .select("invite_code, status, expires_at, mode")
     .eq("id", roomId)
     .maybeSingle()
 
@@ -96,6 +96,7 @@ export async function GET(
   return Response.json(
     {
       status: "completed",
+      mode: room.mode,
       inviteCode: room.invite_code,
       model: saved.model,
       generatedAt: saved.created_at,

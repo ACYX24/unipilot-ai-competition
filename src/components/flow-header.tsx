@@ -1,5 +1,6 @@
 import { Check, LockKeyhole } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { RoomMode } from "@/lib/room-types"
 
 export type FlowStage =
   | "statement"
@@ -16,6 +17,14 @@ const stages: { key: FlowStage; label: string }[] = [
   { key: "agreement", label: "和解报告" },
 ]
 
+const teacherLabels: Record<FlowStage, string> = {
+  statement: "写纸条",
+  waiting: "等纸条",
+  feedback: "整理线索",
+  analysis: "回看对话",
+  agreement: "下一步",
+}
+
 type FlowHeaderProps = {
   current: FlowStage
   inviteCode: string
@@ -23,6 +32,7 @@ type FlowHeaderProps = {
   relation?: string
   bothSubmitted: boolean
   className?: string
+  mode?: RoomMode
 }
 
 /**
@@ -36,6 +46,7 @@ export function FlowHeader({
   relation,
   bothSubmitted,
   className,
+  mode = "court",
 }: FlowHeaderProps) {
   const currentIndex = stages.findIndex((stage) => stage.key === current)
 
@@ -70,7 +81,7 @@ export function FlowHeader({
                 done && "border-tang-300",
               )}
             >
-              {stage.label}
+              {mode === "teacher" ? teacherLabels[stage.key] : stage.label}
             </li>
           )
         })}

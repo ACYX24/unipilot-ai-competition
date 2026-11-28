@@ -6,6 +6,7 @@ Qoder Sites 托管静态页面。现有 Next.js 后端提供建房、陈述、�
 
 - 新比赛库先执行 `supabase/schema.sql`，再执行 `supabase/migrations/20261126_contest_model_quota.sql`。
 - 已有比赛库先确认只有测试数据并备份。按先后顺序补齐缺失的 `20261121_analysis_lease.sql`、`20261122_atomic_statement_submit.sql` 和 `20261126_contest_model_quota.sql`。核对 RLS，以及 `claim_room_analysis`、`release_room_analysis`、`submit_room_statement`、`consume_contest_model_quota` 的执行权限。应用函数只授权给 `service_role`。
+- 更新已有比赛库时，应用 `20261128_room_mode.sql` 后再部署更新的 Next.js 后端。旧房间默认使用庭审。确认后端支持猫老师模式后，再发布静态站点。
 - 仓库所有者授权 Vercel 导入仓库。Next.js 运行环境选择 Node.js 24，启用支持 90 秒分析时限的运行配置，使用可匿名访问的生产 HTTPS 域名。主干自动部署时，数据库迁移先于合并执行。
 - 在后端平台填写 `.env.example` 中的 Supabase 和模型变量。比赛环境设 `CATJUDGE_CONTEST_MODE=1`。默认全站每分钟 8 次、每个北京时间自然日 100 次模型调用，使用 `CATJUDGE_MODEL_MINUTE_LIMIT` 和 `CATJUDGE_MODEL_DAILY_LIMIT` 调整。模型的自动修复调用也计入额度。
 - `CATJUDGE_SITE_ORIGINS` 填实际 Sites 公网来源，包含协议和主机、无尾斜杠。需要并行预览时可填写逗号分隔的来源列表。更新后重新部署后端，再从该来源验证接口的预检和响应。
@@ -27,5 +28,5 @@ pnpm build:sites
 ## 3. 验收和回滚
 
 - 关闭本地开发服务，用未登录的浏览器和手机流量打开正式链接。点击「单人体验 · 真实 AI 调解」，提交虚构案例，核对生成记录和页面报告，再走完庭审。
-- 用两个独立浏览器会话体验双人房间。确认邀请码可加入，双方原文隔离，双方看到同一份模型报告。检查刷新、模型失败后的手动重试和额度用尽提示。
+- 对两种模式分别用两个独立浏览器会话体验双人房间。确认邀请码可加入、刷新和直达报告仍沿用建房时的模式、双方原文隔离、双方看到同一份模型报告。检查单方等待、模型失败后的手动重试和额度用尽提示。
 - 先运行 `pnpm lint`、`pnpm test`、`pnpm build` 和 `pnpm build:sites`。保存通过验收的前后端版本，以便按配套版本回滚。回滚应用可以保留数据库新增的表和函数。

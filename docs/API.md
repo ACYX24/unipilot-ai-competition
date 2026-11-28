@@ -17,6 +17,8 @@ x-participant-token: <创建/加入房间时返回的 accessToken>
 | GET | `/api/rooms/[roomId]/state` | 参与者 | 房间状态；始终不返回对方陈述原文 |
 | POST | `/api/rooms/[roomId]/statements` | 参与者 | 每侧提交一次；双方齐全后状态变为 `analyzing` |
 
+创建房间可传 `mode`（`court` 或 `teacher`），省略时使用 `court`。创建和加入响应都返回房间的 `mode`。房间状态的 `room.mode` 与报告响应的顶层 `mode` 均来自同一房间记录。加入和后续请求沿用建房时的选择。
+
 ### 1.1 提交陈述的幂等与错误
 
 `POST /api/rooms/[roomId]/statements`
@@ -90,6 +92,7 @@ x-participant-token: <创建/加入房间时返回的 accessToken>
 {
   "status": "completed",
   "inviteCode": "ABCD2345",
+  "mode": "court",
   "model": "qwen-plus",
   "generatedAt": "2026-11-21T03:20:00.000Z",
   "report": {

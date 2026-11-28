@@ -3,6 +3,7 @@ import type {
   ApiError,
   CreateRoomResponse,
   JoinRoomResponse,
+  RoomMode,
   RoomReportResponse,
   RoomStateResponse,
 } from "./room-types"
@@ -58,13 +59,18 @@ export async function createRoom(input: {
   topic: string
   disputeType: string
   displayName: string
+  mode?: RoomMode
 }) {
   const response = await fetch(`${roomApiOrigin}/api/rooms`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   })
-  return readResponse<CreateRoomResponse>(response)
+  const room = await readResponse<CreateRoomResponse>(response)
+  if (input.mode === "teacher" && room.mode !== "teacher") {
+    throw new RoomApiError("猫老师房间暂不可用，请稍后再试。", 503, "room_mode_unavailable")
+  }
+  return room
 }
 
 export async function joinRoom(input: {

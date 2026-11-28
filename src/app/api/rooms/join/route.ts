@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
   const { data: room, error: roomError } = await supabase
     .from("rooms")
-    .select("id, invite_code, status, expires_at")
+    .select("id, invite_code, status, expires_at, mode")
     .eq("invite_code", inviteCode)
     .maybeSingle()
 
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
   }
 
   return Response.json(
-    { roomId: room.id, inviteCode: room.invite_code, side: "B", accessToken },
+    { roomId: room.id, inviteCode: room.invite_code, mode: room.mode, side: "B", accessToken },
     { status: 201 },
   )
 }
