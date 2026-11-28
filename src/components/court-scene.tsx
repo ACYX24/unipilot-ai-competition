@@ -1,4 +1,5 @@
 import { ScenePicture } from "./scene-artwork"
+import { CourtTomato } from "./verdict-reactions"
 import type { RoomSeat } from "@/lib/room-types"
 import { cn } from "@/lib/utils"
 
@@ -51,7 +52,12 @@ function DeskPaper({ player }: { player: RoomSeat }) {
   )
 }
 
-function CourtIllustration({ left, right, phase }: { left: RoomSeat; right: RoomSeat; phase: CourtPhase }) {
+function CourtIllustration({ left, right, phase, tomatoRound }: {
+  left: RoomSeat
+  right: RoomSeat
+  phase: CourtPhase
+  tomatoRound: number
+}) {
   const frame = right.joined === false ? "court-arrival"
     : phase === "statement" ? (right.isMe ? "court-response" : "court-claim")
     : phase === "waiting" ? (left.submitted ? "court-response" : "court-claim")
@@ -67,6 +73,14 @@ function CourtIllustration({ left, right, phase }: { left: RoomSeat; right: Room
           <DeskPaper player={left} />
           <DeskPaper player={right} />
         </svg>
+        {tomatoRound > 0 && (
+          <div key={tomatoRound}>
+            <div className="court-seat-recoil" data-side={left.isMe ? "B" : "A"}>
+              <ScenePicture frame={frame} eager />
+            </div>
+            <CourtTomato from={left.isMe ? "A" : "B"} />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -89,11 +103,13 @@ export function CourtScene({
   right,
   phase,
   action,
+  tomatoRound = 0,
 }: {
   left: RoomSeat
   right: RoomSeat
   phase: CourtPhase
   action?: React.ReactNode
+  tomatoRound?: number
 }) {
   return (
     <section className="court-scene" data-court-phase={phase} aria-label="猫猫小法庭">
@@ -101,7 +117,7 @@ export function CourtScene({
         <span className="court-stage-name">猫猫小法庭</span>
         <span className="court-stage-phase">{phaseLabel[phase]}</span>
       </div>
-      <CourtIllustration left={left} right={right} phase={phase} />
+      <CourtIllustration left={left} right={right} phase={phase} tomatoRound={tomatoRound} />
       <div className="court-seat-labels">
         <SeatLabel player={left} />
         <SeatLabel player={right} />

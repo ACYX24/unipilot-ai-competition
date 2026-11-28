@@ -8,6 +8,7 @@
     --office-board-cream: #fff0ce;
     --office-board-sage: #e5eacb;
     --office-board-peach: #eed4b0;
+    --office-accent-rust: #8b4c36;
     --office-board-ink: #483c30;
     --mode-curtain-shadow: #132b22;
   }
@@ -103,9 +104,9 @@
   .scene-picture { display: block; width: 100%; height: auto; aspect-ratio: 2; object-fit: cover; }
   .scene-stage { position: relative; overflow: hidden; isolation: isolate; aspect-ratio: 2; background: var(--color-cream-200); }
   .scene-frame { position: absolute; inset-block: 0; left: 50%; width: 100%; transform: translateX(-50%); }
-  .scene-props, .office-listen-layer { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+  .scene-props, .office-listen-layer, .office-supplement-motion { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
   .teacher-office { border-bottom: 1px solid var(--notebook-line); }
-  .office-listen-layer { display: none; }
+  .office-listen-layer, .office-supplement-motion, .office-supplement-accent { display: none; }
   .office-slip-shadow, .office-board-shadow { fill: var(--office-notebook-walnut); opacity: .35; }
   .office-slip-paper, .office-board-stock { fill: var(--office-board-cream); }
   .office-board-pin, .office-board-paper text { fill: var(--office-board-ink); }
@@ -113,7 +114,11 @@
   .office-board-paper text { font: 600 12px var(--font-display); }
   .office-board-card[data-side="B"] .office-board-stock { fill: var(--office-notebook-blue); }
   .office-board-next .office-board-stock { fill: var(--office-board-sage); }
-  .office-board-supplement .office-board-stock { fill: var(--office-board-peach); }
+  .office-supplement-paper { fill: var(--office-board-peach); stroke: var(--office-accent-rust); stroke-width: 1.1; }
+  .office-supplement-fold { fill: none; stroke: var(--office-accent-rust); stroke-width: 1.25; opacity: .76; }
+  .office-supplement-tape { fill: var(--office-accent-rust); opacity: .6; }
+  .office-supplement-card text { fill: var(--office-board-ink); font: 700 12px var(--font-display); }
+  .office-supplement-accent { fill: none; stroke: var(--office-accent-rust); stroke-width: 2.8; stroke-linecap: round; }
   .teacher-supplement {
     display: flex;
     flex-wrap: wrap;
@@ -123,6 +128,16 @@
     font-size: .82rem;
   }
   .teacher-supplement button { min-height: 2.75rem; }
+  .teacher-supplement-quote {
+    display: grid;
+    gap: .12rem;
+    padding: .45rem .7rem;
+    border-left: 2px solid var(--office-accent-rust);
+    background: var(--office-notebook-ochre);
+    color: var(--office-board-ink);
+    font-size: .9rem;
+  }
+  .teacher-supplement-quote small { color: var(--notebook-muted); }
   .teacher-scene-body { display: grid; gap: .95rem; padding: clamp(.95rem, 3.5vw, 1.8rem); }
 
   .teacher-scene-guide h2, .teacher-report-page h2 {
@@ -229,7 +244,21 @@
     }
     .teacher-office[data-office-action="sharing"] .office-shared-card { animation: office-share-card .5s .2s ease-out both; }
     .teacher-office[data-office-action="closing"] .office-shared-card { animation: office-close-card .42s ease-out both; }
-    .office-supplement-card { --office-card-travel: -160px 258px; animation: office-file-card .72s cubic-bezier(.24, .66, .31, 1) both; }
+    .office-supplement-motion {
+      display: block;
+      mask-image: radial-gradient(ellipse 10% 20% at var(--office-speaker-focus) 38%, currentColor 54%, transparent 100%);
+    }
+    .office-supplement-motion[data-side="A"] { --office-speaker-focus: 62%; --office-speaker-lean: -.5%; }
+    .office-supplement-motion[data-side="B"] { --office-speaker-focus: 81%; --office-speaker-lean: -.6%; }
+    .office-supplement-motion .scene-picture { animation: office-supplement-lean 320ms ease-in-out both; }
+    .office-supplement-accent { display: block; animation: office-supplement-accent 320ms ease-out both; }
+    .office-supplement-card {
+      --supplement-spot: -20px 117px;
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: office-supplement-flight 1.18s cubic-bezier(.24, .66, .31, 1) both;
+    }
+    .office-supplement-card[data-side="B"] { --supplement-spot: 328px 139px; }
     .mode-preview[data-changing="true"] > .scene-picture { animation: mode-scene-hold 1.35s ease-in both; }
     .mode-preview[data-changing="true"] .mode-preview-next { animation: mode-scene-reveal 1.35s steps(1, end) both; }
     .mode-curtain {
@@ -254,6 +283,21 @@
     }
     @keyframes office-share-card { from { opacity: 0; translate: 0 5px; } to { opacity: 1; translate: 0 0; } }
     @keyframes office-close-card { from { rotate: -4deg; } to { rotate: 0deg; } }
+    @keyframes office-supplement-lean {
+      0%, 100% { transform: none; }
+      42% { transform: translate(var(--office-speaker-lean), .7%); }
+      64% { transform: translate(var(--office-speaker-lean), .45%); }
+    }
+    @keyframes office-supplement-accent {
+      0%, 100% { opacity: 0; }
+      40%, 58% { opacity: .9; }
+    }
+    @keyframes office-supplement-flight {
+      0%, 19% { opacity: 0; translate: var(--supplement-spot); rotate: -8deg; scale: .75; }
+      29%, 46% { opacity: 1; translate: var(--supplement-spot); rotate: -4deg; scale: 1.07; }
+      90% { opacity: 1; translate: 0 0; rotate: 3deg; scale: .99; }
+      100% { opacity: 1; translate: 0 0; rotate: 2deg; scale: 1; }
+    }
     @keyframes mode-scene-hold { to { opacity: .65; } }
     @keyframes mode-scene-reveal { 0%, 49% { opacity: 0; } 50%, 100% { opacity: 1; } }
     @keyframes mode-curtain-run {

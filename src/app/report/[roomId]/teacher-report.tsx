@@ -4,9 +4,17 @@ import { useState } from "react"
 import { ChevronDown, MessageCircle, NotebookPen } from "lucide-react"
 import { FlowHeader } from "@/components/flow-header"
 import { TeacherScene } from "@/components/teacher-scene"
+import type { OfficeSupplement } from "@/components/teacher-office-art"
 import { Button } from "@/components/ui/button"
 import type { RoomReportResponse, Side } from "@/lib/room-types"
 import { TaskChecklist } from "./task-checklist"
+
+const supplementNotes: OfficeSupplement[] = [
+  ["这点我真不同意！", "先听我把话说完。"],
+  ["这件事我很委屈。", "我也想把话说清。"],
+  ["我不是这个意思！", "那个细节很重要。"],
+  ["这句话让我不舒服。", "我想先说说原因。"],
+]
 
 export function TeacherReport({ reportData, viewerSide }: {
   reportData: RoomReportResponse
@@ -14,7 +22,7 @@ export function TeacherReport({ reportData, viewerSide }: {
 }) {
   const { report, inviteCode } = reportData
   const [action, setAction] = useState<number | null>(null)
-  const [supplement, setSupplement] = useState(false)
+  const [supplement, setSupplement] = useState<OfficeSupplement | null>(null)
   const [completedTasks, setCompletedTasks] = useState(() => report.funTasks.map(() => false))
 
   function toggleTask(index: number) {
@@ -36,10 +44,23 @@ export function TeacherReport({ reportData, viewerSide }: {
         seats={report.summaries.map(({ side, name }) => ({ side, name, submitted: true, isMe: side === viewerSide }))}
         actions={(
           <div className="teacher-supplement">
-            <Button type="button" size="sm" variant="outline" onClick={() => setSupplement(value => !value)}>
-              {supplement ? "移除补充便签" : "贴一张补充便签"}
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setSupplement(supplement ? null : supplementNotes[Math.floor(Math.random() * supplementNotes.length)])}
+            >
+              {supplement ? "收起这张便签" : "我还想补两句"}
             </Button>
-            <p role="status">{supplement ? "已贴在记录板，只在当前页面显示。" : "想回头补充时，可以在记录板留个提醒。"}</p>
+            <div role="status">
+              {supplement ? (
+                <blockquote className="teacher-supplement-quote">
+                  <span>{supplement[0]}</span>
+                  <span>{supplement[1]}</span>
+                  <small>示例便签 · 仅本机可见</small>
+                </blockquote>
+              ) : <p>抽一张示例便签，只在本机展示。</p>}
+            </div>
           </div>
         )}
       />

@@ -249,6 +249,7 @@ function LoadedReport({
     }
   })
   const [step, setStep] = useState(0)
+  const [tomatoRound, setTomatoRound] = useState(0)
   const [reconciliationOpen, setReconciliationOpen] = useState(false)
   const [taskDone, setTaskDone] = useState<boolean[]>(() => report.funTasks.map(() => false))
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -290,6 +291,7 @@ function LoadedReport({
   }
 
   function selectStep(index: number) {
+    if (index !== step) setTomatoRound(0)
     setStep(index)
     requestAnimationFrame(() => headingRef.current?.focus())
   }
@@ -315,11 +317,14 @@ function LoadedReport({
         left={seat("A")}
         right={seat("B")}
         phase={opening ? "gavel" : "verdict"}
+        tomatoRound={tomatoRound}
         action={opening ? (
           <button ref={openingSkipRef} type="button" className="verdict-skip" onClick={skipOpening}>
             跳过敲槌
           </button>
-        ) : null}
+        ) : (
+          <VerdictReactions from={viewerSide} thrown={tomatoRound > 0} onThrow={() => setTomatoRound(round => round + 1)} />
+        )}
       />
 
       {!opening && (
@@ -340,26 +345,23 @@ function LoadedReport({
                 </button>
               ))}
             </div>
-            <VerdictReactions
-              key={activeStep.key}
-              judgeBoard={(
-                <>
-                  <h3 id="court-verdict-heading" tabIndex={-1} ref={headingRef}>
-                    {summary ? `${summary.side} 方 · ${summary.name}` : "判判猫宣读共同误会"}
-                  </h3>
-                  <div className="mt-3">
-                    {summary ? <p className="text-sm leading-7">{summary.text}</p> : (
-                      <Misunderstandings items={report.misunderstandings} />
-                    )}
-                  </div>
-                </>
-              )}
-              next={step < 2 ? (
+            <div className="court-verdict-board">
+              <h3 id="court-verdict-heading" tabIndex={-1} ref={headingRef}>
+                {summary ? `${summary.side} 方 · ${summary.name}` : "判判猫宣读共同误会"}
+              </h3>
+              <div className="mt-3">
+                {summary ? <p className="text-sm leading-7">{summary.text}</p> : (
+                  <Misunderstandings items={report.misunderstandings} />
+                )}
+              </div>
+            </div>
+            {step < 2 && (
+              <div className="court-verdict-actions">
                 <Button type="button" size="sm" onClick={() => selectStep(step + 1)}>
                   {step === 0 ? "宣读 B 方观点" : "宣读共同误会"}
                 </Button>
-              ) : undefined}
-            />
+              </div>
+            )}
           </section>
 
           {step === 2 || reconciliationOpen ? (

@@ -1,6 +1,6 @@
 import { BookOpen, Check, NotepadText, StickyNote } from "lucide-react"
 import type { RoomSeat } from "@/lib/room-types"
-import { TeacherOffice, type OfficeAction } from "./teacher-office-art"
+import { TeacherOffice, type OfficeAction, type OfficeSupplement } from "./teacher-office-art"
 
 const guidance = {
   statement: { title: "先写下你这一边的想法", text: "从一个具体的片段说起就好。那时你最在意什么？" },
@@ -14,7 +14,7 @@ const guidance = {
 export function TeacherScene({ phase, seats, supplement, actions }: {
   phase: keyof typeof guidance
   seats: RoomSeat[]
-  supplement?: boolean
+  supplement?: OfficeSupplement | null
   actions?: React.ReactNode
 }) {
   const { title, text } = guidance[phase]

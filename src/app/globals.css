@@ -804,7 +804,6 @@
   }
 
   .court-verdict-board h3 {
-    padding-inline-end: 2.25rem;
     overflow-wrap: anywhere;
     color: #5c3f30;
     font-size: 1.03rem;
@@ -850,34 +849,66 @@
     min-height: 2.75rem;
   }
 
-  .court-tomato {
+  .court-scene-reaction {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    padding: 0.55rem clamp(0.65rem, 2vw, 1.15rem);
+    border-top: 1px solid var(--color-cream-300);
+    color: var(--color-cocoa-500);
+    font-size: 0.78rem;
+  }
+
+  .court-scene-reaction button { min-height: 2.75rem; }
+
+  .court-tomato-flight,
+  .court-tomato-trace,
+  .court-seat-recoil {
+    display: none;
+  }
+
+  .court-seat-recoil {
     position: absolute;
-    inset: 0.65rem 1rem auto auto;
-    width: 2rem;
-    height: 2rem;
+    inset: 0;
     pointer-events: none;
+    mask-image: radial-gradient(ellipse 11% 23% at var(--court-seat-focus) 45%, currentColor 55%, transparent 100%);
   }
 
-  .court-tomato-fruit {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: court-tomato-toss 650ms ease-out both;
-  }
+  .court-seat-recoil[data-side="A"] { --court-seat-focus: 21%; --court-recoil: -0.52%; }
+  .court-seat-recoil[data-side="B"] { --court-seat-focus: 83%; --court-recoil: 0.52%; }
 
-  .court-tomato-splat {
-    animation: court-tomato-splat 650ms ease-out both;
-  }
+  @media (prefers-reduced-motion: no-preference) {
+    .court-tomato-flight { display: block; animation: court-tomato-flight 860ms linear both; }
+    .court-tomato-trace { display: block; animation: court-tomato-trace 860ms ease-out both; }
+    .court-seat-recoil { display: block; }
+    .court-seat-recoil .scene-picture { animation: court-seat-recoil 430ms 810ms ease-out both; }
+    .court-tomato-fruit,
+    .court-tomato-splat { transform-box: fill-box; transform-origin: center; }
+    .court-tomato-fruit { animation: court-tomato-pop 160ms ease-out both; }
+    .court-tomato-splat { animation: court-tomato-splat 350ms 840ms ease-out both; }
 
-  @keyframes court-tomato-toss {
-    0% { opacity: 0; transform: translate(-5rem, 4rem) rotate(-120deg); }
-    18% { opacity: 1; }
-    77% { opacity: 1; transform: translate(-0.2rem, -0.55rem) rotate(0); }
-    82%, 100% { opacity: 0; transform: translate(0, 0) scale(0.65); }
-  }
-
-  @keyframes court-tomato-splat {
-    0%, 77% { opacity: 0; }
-    83%, 100% { opacity: 1; }
+    @keyframes court-tomato-flight {
+      0%, 100% { opacity: 0; }
+      9%, 96% { opacity: 1; }
+    }
+    @keyframes court-tomato-pop {
+      from { transform: translateY(8px) scale(0.28); }
+      to { transform: none; }
+    }
+    @keyframes court-tomato-trace {
+      0%, 12%, 100% { opacity: 0; }
+      31%, 72% { opacity: 0.7; }
+    }
+    @keyframes court-tomato-splat {
+      0% { opacity: 0; transform: scale(0.32, 0.55); }
+      35% { opacity: 1; transform: scale(1.14, 0.92); }
+      100% { opacity: 1; transform: none; }
+    }
+    @keyframes court-seat-recoil {
+      0%, 100% { transform: none; }
+      30% { transform: translate(var(--court-recoil), -0.65%); }
+    }
   }
 
   .verdict-reveal {
@@ -941,13 +972,10 @@
     .court-scene .court-gavel,
     .court-scene .court-gavel-impact,
     .court-scene .court-gavel-arm,
-    .court-scene .court-gavel-paw,
-    .court-tomato-fruit,
-    .court-tomato-splat {
+    .court-scene .court-gavel-paw {
       animation: none !important;
     }
 
-    .court-tomato-fruit,
     .verdict-skip {
       display: none;
     }
